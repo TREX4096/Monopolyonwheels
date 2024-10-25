@@ -42,7 +42,7 @@ const Question = ({ index }: prop) => {
   const body = {
     question: question,
     options: [option1, option2, option3, option4],
-    multi: multipe,
+    multiple: multipe,
   };
 
   // useEffect to sync FormId updates as the user types in the fields

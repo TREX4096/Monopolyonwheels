@@ -1,9 +1,10 @@
 // iske ek piche jaana hai
 "use client"
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { ApiError } from 'next/dist/server/api-utils';
 
 interface Leader {
   id: string;
@@ -104,11 +105,6 @@ const SCENARIOS: Scenario[] = [
   }
 ];
 
-const INITIAL_LEADERS: Leader[] = [
-  { id: '1', rank: 1, username: 'Alice150', points: 150 },
-  { id: '2', rank: 2, username: 'Bob120', points: 120 },
-  { id: '3', rank: 3, username: 'Charlie100', points: 100 },
-];
 
 interface user{
   name:string,
@@ -117,7 +113,11 @@ interface user{
 
 interface Detail{
   leaderBoard:user[],
-  rank:number
+  user:{
+    rank:number,
+    points:number,
+    spinLeft:number
+  }
 }
 
 const CareerDecisionGame = () => {
@@ -126,14 +126,14 @@ const CareerDecisionGame = () => {
    const router= useRouter()
 
 
+   const [detail, setDetail] = useState<Detail | undefined>(undefined);
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
-  const [careerPoints, setCareerPoints] = useState(0);
-  const [spinsLeft, setSpinsLeft] = useState(10);
+  const [careerPoints, setCareerPoints] = useState(detail?.user?.points || 0);
+  const [spinsLeft, setSpinsLeft] = useState(detail?.user?.spinLeft);
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [angle, setAngle] = useState(0);
   const [rank, setRank] = useState(4);
-  const [detail, setDetail] = useState<Detail | undefined>(undefined);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showGetSpinsModal, setShowGetSpinsModal] = useState(false);
   const [tasks, setTasks] = useState([
@@ -144,33 +144,11 @@ const CareerDecisionGame = () => {
   
 
   const { data: session, status } = useSession();
+
+  
   const userId = session?.user?.id
 
-  
-  const getDetail = async () => {
-    try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${userId}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
 
-      const response = await axios.get(url);
-      const data = response.data;
-        console.log(data);
-        
-      setDetail(data);
-
-
-    } catch (error: any) {
-      // Axios error objects contain the response inside error.response
-      if (error.response) {
-        console.error('Error fetching forms:', error.response.status, error.response.data);
-      } else {
-        console.error('Error fetching forms:', error.message);
-      }
-    } finally {
-      // setisLoading(false);
-  console.log("Function ran");
-  
-    }
-  };
   const handleTaskClick = (path: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Stop event propagation
     setShowGetSpinsModal(false);
@@ -239,7 +217,8 @@ ctx.restore();
   };
 
   const spinWheel = () => {
-    if (isSpinning || spinsLeft <= 0) return;
+    if(spinsLeft){
+    if (isSpinning || spinsLeft <= 0) return;}
 
     setIsSpinning(true);
     const spinDuration = 4000;
@@ -264,25 +243,25 @@ ctx.restore();
         setCurrentScenario(SCENARIOS[selectedIndex]);
 
         // Proceed to update the points and spins left after the animation finishes
-        axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${userId}`,
-          {
-            points: 0,
-            spinUpdate: 1
-          }
-        )
-          .then((response) => {
-            // Assuming response.data.user.spinleft contains the updated spins left
-            const updatedSpinsLeft = response.data.user.spinLeft;
-            console.log(updatedSpinsLeft)
+        // axios.post(
+        //   `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${userId}`,
+        //   {
+        //     points: 0,
+        //     spinUpdate: -1
+        //   }
+        // )
+        //   .then((response) => {
+        //     // Assuming response.data.user.spinleft contains the updated spins left
+        //     const updatedSpinsLeft = response.data.user.spinLeft;
+        //     console.log(updatedSpinsLeft)
 
-            // Update the spins left based on the server response
-            setSpinsLeft(updatedSpinsLeft);
-          })
-          .catch((error) => {
-            console.error("Error updating spins left:", error);
-            // Handle the error, e.g., show a message to the user
-          });
+        //     // Update the spins left based on the server response
+        //     setSpinsLeft(updatedSpinsLeft);
+        //   })
+        //   .catch((error) => {
+        //     console.error("Error updating spins left:", error);
+        //     // Handle the error, e.g., show a message to the user
+        //   });
       }
 
     };
@@ -292,15 +271,96 @@ ctx.restore();
 
   useEffect(() => {
     drawWheel();
-    getDetail()
-  }, [angle]);
-
-
+  }, [angle,userId]);
+  
   useEffect(() => {
-    if (spinsLeft === 0) {
-      router.push('/feedback');
+    if (session?.user?.id) {
+      // Move all session-dependent initialization here
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
+      axios.get(url)
+        .then((response) => {
+          console.log(response.data);
+          console.log(response.data.user.spinLeft);
+          console.log(response.data.user.points);
+          
+          setDetail(response.data);
+          setSpinsLeft(response.data.user.spinLeft);
+          setCareerPoints(response.data.user.points);
+        })
+        .catch((error) => {
+          console.log('Error fetching details:', error);
+        });
     }
-  }, [spinsLeft, router]);
+  }, [session,detail]); // Add session as dependency
+
+  // useEffect(() => {
+  //   if (spinsLeft === 0) {
+  //     router.push('/api/user/feedback');
+  //   }
+  // }, [spinsLeft, router]);
+  
+  const handleToughChoice = () => {
+    if (session?.user?.id && currentScenario) {
+      axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${session.user.id}`,
+        {
+          points: currentScenario.careerPoints,
+          spinUpdate: -(currentScenario.spinCommitment+1)
+        }
+      )
+      .then((response) => {
+        // Re-fetch details after update
+        if (session?.user?.id) {
+          const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
+          return axios.get(url);
+        }
+      })
+      .then((response) => {
+        if (response) {
+          setDetail(response.data);
+          console.log(detail);
+          
+          setCareerPoints(response.data.user.points);
+          setSpinsLeft(response.data.user.spinLeft)
+        }
+      })
+      .catch((error) => {
+        console.log("Error:", error);
+      });
+    }
+    setCurrentScenario(null);
+  };
+
+  const handleEasyChoice = () => {
+    if (session?.user?.id && currentScenario) {
+      axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${session.user.id}`,
+        {
+          points: 0,
+          spinUpdate: -1
+        }
+      )
+      .then((response) => {
+        // Re-fetch details after update
+        if (session?.user?.id) {
+          const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
+          return axios.get(url);
+        }
+      })
+      .then((response) => {
+        if (response) {
+          setDetail(response.data);
+          setCareerPoints(response.data.user.points);
+          setSpinsLeft(response.data.user.spinLeft)
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    }
+    setCurrentScenario(null);
+  };
+
 
   return (<div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 p-4">
       <div className="max-w-md mx-auto">
@@ -332,8 +392,8 @@ ctx.restore();
           {/* Stats Display */}
           <div className="flex justify-between mb-6">
             <div className="space-y-1">
-              <div className="text-xl font-bold">Global Rank: {detail?.rank}</div>
-              <div className="text-xl font-bold">Career points: {careerPoints}</div>
+              <div className="text-xl font-bold">Global Rank: {detail?.user?.rank || "none"}</div>
+              <div className="text-xl font-bold">Career points: { careerPoints }</div>
             </div>
             <div className="text-xl font-bold">
               Spin: {spinsLeft}
@@ -361,7 +421,7 @@ ctx.restore();
           <div className="space-y-4">
             <button
               onClick={spinWheel}
-              disabled={isSpinning || spinsLeft <= 0}
+              disabled={isSpinning ||(spinsLeft) <= 0}
               className="w-full bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full disabled:opacity-50"
             >
               Click to spin
@@ -380,9 +440,9 @@ ctx.restore();
         <div className="mt-8">
           <h2 className="text-2xl font-bold mb-6">Leader Board</h2>
           <div className="flex justify-center items-end space-x-8">
-            {detail?.leaderBoard?.map((leader,index) => (
+            {detail?.leaderBoard?.map((leader,index) => ( 
               leader && 
-              <div className="text-center">
+              <div className="text-center" key={index}>
                 <div
                   className={`${(index+1) === 1 ? 'w-24 h-24' : 'w-20 h-20'
                     } bg-gray-200 rounded-full flex items-center justify-center mb-2`}
@@ -405,39 +465,25 @@ ctx.restore();
               <h3 className="text-lg font-bold mb-4">{currentScenario.scenario}</h3>
               <div className="space-y-4">
                 <button
-                  onClick={() => setCurrentScenario(null)}
+                  onClick={handleEasyChoice}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded"
                 >
                   {currentScenario.easy}
                 </button>
                 <button
-                  onClick={() => {
-                    axios.post(
-                      `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${userId}`,
-                      {
-                        points: currentScenario.careerPoints,
-                        spinUpdate: 0
-                      }
-                    )
-                      .then((response) => {
-                        // Assuming response.data.user.spinleft contains the updated spins left
-                        const updatedCareerIncrease = response.data.user.CareerPoints;
-
-                        // Update the spins left based on the server response
-                        setCareerPoints(updatedCareerIncrease);
-                      })
-                      .catch((error) => {
-                        console.error("Error updating spins left:", error);
-                        // Handle the error, e.g., show a message to the user
-                      });
-                    setCurrentScenario(null);
-                  }}
+                  onClick={handleToughChoice}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
                 >
                   {currentScenario.tough}
+                  <div className='flex flex-row gap-2 items-center justify-center'>
                   <span className="text-sm ml-2">
                     (+{currentScenario.careerPoints} pts)
                   </span>
+                  <span className="text-sm ml-2">
+                    (- {`${currentScenario.spinCommitment} + 1`} spin)
+                  </span>
+                  </div>
+                    
                 </button>
               </div>
             </div>

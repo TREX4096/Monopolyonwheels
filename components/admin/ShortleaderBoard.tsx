@@ -19,7 +19,7 @@ const LeaderBoard: React.FC<LeaderBoardProps> = ({ users, lightmode,heading }) =
       <div className='flex flex-col gap-1'>
         {
 
-          users.length>0 ? 
+          users?.length>0 ? 
         
         
         (users?.map((user,index) => (

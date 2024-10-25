@@ -27,9 +27,11 @@ const Newform = () => {
         }
       
         try {
+          console.log({formName,formData:Form});
+          
       
           
-          // Add a loading state here if necessary
+           // Add a loading state here if necessary
           const response = await axios.post(url, {
             formName,
             formData:Form
@@ -39,6 +41,7 @@ const Newform = () => {
             alert("Form added successfully");
             // Optionally reset the form fields
             // setForm({});
+         
           } else {
             alert("Form not added, please try again");
           }

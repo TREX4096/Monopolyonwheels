@@ -46,10 +46,10 @@ const TimerCard = ({heading,popup,setPopup,resetOrNot,task, setFunctionName}:tim
             <h3 className='text-center'>{`Set Reset Timer for ${heading}`}</h3>
             <div className='flex flex-col md:flex-row justify-between'>
                 <div className='flex flex-col b-r-[1px] '>
-                    <span>{`Last Updated at:-  ${task.updatedAt}`}</span>
+                    <span>{`Last Updated at:-  ${task?.updatedAt}`}</span>
                     <span>{
-                        task.timeLeft !== null ?
-                    `Time Left:- ${task.timeLeft}` :
+                        task?.timeLeft !== null ?
+                    `Time Left:- ${task?.timeLeft}` :
                     `Task Completed`
                     }</span>
                 </div>

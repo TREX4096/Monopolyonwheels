@@ -111,9 +111,9 @@ export default function Dashboard() {
     } catch (error: any) {
       // Axios error objects contain the response inside error.response
       if (error.response) {
-        console.error('Error fetching forms:', error.response.status, error.response.data);
+        console.log('Error fetching forms:', error.response.status, error.response.data);
       } else {
-        console.error('Error fetching forms:', error.message);
+        console.log('Error fetching forms:', error.message);
       }
     }
     finally {

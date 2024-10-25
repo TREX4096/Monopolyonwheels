@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { useSession } from 'next-auth/react';
 
 interface Option {
   id: string;
@@ -12,7 +13,7 @@ interface QuestionProps {
   options: Option[];
   ismarked: boolean;
   set_Selected_Option: (value: boolean) => void;
-  userId: string | null;
+  // userId: string | null;
   formId: string;
 }
 
@@ -20,17 +21,20 @@ export default function EachQuestion({
   question,
   questionId,
   options,
-  userId,
   formId,
   ismarked,
   set_Selected_Option,
 }: QuestionProps) {
+
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id
 
-  const onSubmit = async () => {
+  const onClickFunction = async () => {
     if (!selectedOption) {
       setError("Please select an option before submitting.");
       return;
@@ -39,19 +43,32 @@ export default function EachQuestion({
     setError(null);
     setSuccess(null);
 
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${userId}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
+    console.log(url);
+    
+    const body = {
+      formId: formId,
+      questionId: questionId,
+      optionId: selectedOption,
+    };
+
+    console.log(body);
+    
+
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${process.env.NEXT_PUBLIC_USER_ID}`;
-      const body = {
-        formId: formId,
-        questionId: questionId,
-        optionId: selectedOption,
-      };
+     
 
       if (ismarked === true) {
         setError("This Question has been already marked by You.");
       } else {
+
+        if(session?.user?.id){ 
         const response = await axios.post(url, body);
+      
+        console.log(response);
+        
         if (response.status === 200) {
+          
           setSuccess("Your answer has been submitted successfully!");
           setSelectedOption("");
           set_Selected_Option(true);
@@ -60,6 +77,7 @@ export default function EachQuestion({
           set_Selected_Option(true);
           setSelectedOption("");
         }
+      }
       }
     } catch (error) {
       setError("Error submitting answer. Please try again later.");
@@ -86,20 +104,18 @@ export default function EachQuestion({
         {options.map((opt) => (
           <div
             key={opt.id}
-            className={`border rounded-lg p-4 cursor-pointer transition-all ${
-              selectedOption === opt.id
+            className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedOption === opt.id
                 ? "border-green-400 bg-green-50"
                 : "border-gray-200 hover:border-gray-300"
-            }`}
+              }`}
             onClick={() => setSelectedOption(opt.id)}
           >
             <div className="flex items-center">
               <div
-                className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${
-                  selectedOption === opt.id
+                className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${selectedOption === opt.id
                     ? "border-green-400 bg-green-400"
                     : "border-gray-300"
-                }`}
+                  }`}
               >
                 {selectedOption === opt.id && (
                   <div className="w-3 h-3 bg-white rounded-full" />
@@ -117,7 +133,7 @@ export default function EachQuestion({
           Prev
         </button>
         <button
-          onClick={onSubmit}
+          // onClick={onClickFunction}
           disabled={loading}
           className="px-6 py-3 bg-green-400 text-white rounded-full hover:bg-green-500 transition-colors disabled:bg-gray-300 text-lg"
         >

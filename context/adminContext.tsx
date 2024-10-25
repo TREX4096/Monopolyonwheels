@@ -4,7 +4,8 @@ import { createContext, useState, ReactNode, Dispatch, SetStateAction } from 're
 
 interface Question{
   question:string,
-  options:string[]
+  options:string[],
+  multiple:boolean
 
 }
 

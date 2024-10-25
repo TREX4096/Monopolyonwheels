@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { ChevronLeft } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 // TopBar Component
 const TopBar = ({ showBack = true }) => {
@@ -120,8 +121,10 @@ const EachQuestion = ({
 };
 
 // Survey Component
-const Survey = ({ questions, formId, userId }) => {
+const Survey = ({ questions, formId }) => {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id
   const unmarkedQuestions = questions.filter(question => !question.ismarked);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
@@ -139,17 +142,17 @@ const Survey = ({ questions, formId, userId }) => {
     setError(null);
 
     try {
-        if (direction === 'next' && selectedOption) {
-            const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${process.env.NEXT_PUBLIC_USER_ID}`;
+        if (direction === 'next' && selectedOption && userId) {
+            const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${userId}/${process.env.NEXT_PUBLIC_USER_ID}`;
             const body = {
                 formId,
                 questionId: unmarkedQuestions[currentQuestionIndex].questionId,
-                optionId: selectedOption,
+                optionId: [selectedOption],
             };
 
             // Send the answer to mark the question
             const response = await axios.post(url, body);
-
+            
             // Check if we reached the last question
             if (currentQuestionIndex === unmarkedQuestions.length - 1) {
                 // Update points
@@ -157,7 +160,7 @@ const Survey = ({ questions, formId, userId }) => {
                     `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${process.env.NEXT_PUBLIC_USER_ID}`,
                     {
                         points: 0,
-                        spinUpdate: -10,
+                        spinUpdate: 10,
                     }
                 );
 
