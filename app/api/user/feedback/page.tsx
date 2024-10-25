@@ -1,13 +1,17 @@
 "use client"
-import { url } from 'inspector';
 import React, { useState } from 'react'
 import { IoIosStar } from "react-icons/io";
 import axios from 'axios';
+import { ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { TopBar } from '@/components/survey';
+import { useSession } from 'next-auth/react';
 
 interface BoxProps {
     heading: string,
     setFunction: (value: string) => void
 }
+
 
 const page = () => {
 
@@ -15,8 +19,11 @@ const page = () => {
     const [stars, setStars] = useState<number | any>(-1)
     const [abtTheGame, setAbtTheGame] = useState("none")
     const [notLiked, setNotLiked] = useState("none")
+    const { data: session } = useSession();
+    const userId = session?.user?.id ; // Ensure this is set correctly
+
     
-    const userId = "e6fd28dd-9463-4f5c-ac2d-9883974a19f7"
+
 
     const handleStarClick = (index: number) => {
        if(stars===(index)){
@@ -51,13 +58,9 @@ const page = () => {
           
           console.log('Response:', data);
       
-          if (response.status === 201) {
+          if ((response.status === 201) || (response.status === 210)) {
             // Redirect user on success
             window.location.href = 'https://abudhabi.iitd.ac.in/';
-          } else if (response.status === 400) {
-            // Handle validation errors
-            alert(data.message);
-            console.log(data);
           } else {
             // Handle other response statuses if needed
             alert('Unexpected response received.');
@@ -80,6 +83,7 @@ const page = () => {
         className='colorBg w-[100vw] h-[100vh] flex justify-center items-center p-4' 
     
       >
+        <TopBar showBack={true}/>
         <div className='flex flex-col p-6 bg-white rounded-lg shadow-md max-w-md w-full opacity-[0.85] bg-opacity-[0.38]'>
           <div className='text-xl text-center font-semibold mb-4'>How Much did you like the game</div>
          

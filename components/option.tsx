@@ -1,153 +1,75 @@
 import { useState } from "react";
-import axios from "axios";
-import { useSession } from 'next-auth/react';
+
 
 interface Option {
   id: string;
   option: string;
 }
 
+
 interface QuestionProps {
   question: string;
   questionId: string;
   options: Option[];
   ismarked: boolean;
-  set_Selected_Option: (value: boolean) => void;
-  // userId: string | null;
+  set_Selected_Option: (value: string[] | string) => void; // Updated to handle array or string
   formId: string;
+  isMultipleCorrect: boolean; // Add a new prop
 }
 
 export default function EachQuestion({
   question,
-  questionId,
   options,
-  formId,
-  ismarked,
   set_Selected_Option,
+  isMultipleCorrect, // Add a new prop
 }: QuestionProps) {
+  const [selectedOption, setSelectedOption] = useState<string[]>([]); // Now an array
 
-  const [selectedOption, setSelectedOption] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  
-  const { data: session, status } = useSession();
-  const userId = session?.user?.id
-
-  const onClickFunction = async () => {
-    if (!selectedOption) {
-      setError("Please select an option before submitting.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${userId}/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
-    console.log(url);
-    
-    const body = {
-      formId: formId,
-      questionId: questionId,
-      optionId: selectedOption,
-    };
-
-    console.log(body);
-    
-
-    try {
-     
-
-      if (ismarked === true) {
-        setError("This Question has been already marked by You.");
+  const handleOptionSelect = (optionId: string) => {
+    if (isMultipleCorrect) {
+      // Handle multiple correct answers
+      if (selectedOption.includes(optionId)) {
+        setSelectedOption(selectedOption.filter((id) => id !== optionId));
       } else {
-
-        if(session?.user?.id){ 
-        const response = await axios.post(url, body);
-      
-        console.log(response);
-        
-        if (response.status === 200) {
-          
-          setSuccess("Your answer has been submitted successfully!");
-          setSelectedOption("");
-          set_Selected_Option(true);
-        } else if (response.status === 202) {
-          setSuccess("This Question has been already marked by You.");
-          set_Selected_Option(true);
-          setSelectedOption("");
-        }
+        setSelectedOption([...selectedOption, optionId]);
       }
-      }
-    } catch (error) {
-      setError("Error submitting answer. Please try again later.");
-      console.error("Error submitting answer:", error);
-    } finally {
-      setLoading(false);
+    } else {
+      setSelectedOption([optionId]); // Single select
     }
+
+    set_Selected_Option(isMultipleCorrect ? selectedOption : optionId);
   };
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen sm:p-8 lg:p-10">
-      {/* Progress indicator */}
       <div className="mb-6">
-        <p className="text-gray-600 text-sm">2 out of 5 questions</p>
+        <p className="text-gray-600 text-sm">Question</p>
       </div>
-
-      {/* Question */}
       <div className="mb-8">
         <h2 className="text-xl font-medium mb-4">{question}</h2>
       </div>
-
-      {/* Options */}
       <div className="space-y-4">
         {options.map((opt) => (
           <div
             key={opt.id}
-            className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedOption === opt.id
-                ? "border-green-400 bg-green-50"
-                : "border-gray-200 hover:border-gray-300"
-              }`}
-            onClick={() => setSelectedOption(opt.id)}
+            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+              selectedOption.includes(opt.id) ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={() => handleOptionSelect(opt.id)}
           >
             <div className="flex items-center">
               <div
-                className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${selectedOption === opt.id
-                    ? "border-green-400 bg-green-400"
-                    : "border-gray-300"
-                  }`}
+                className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center ${
+                  selectedOption.includes(opt.id) ? 'border-green-400 bg-green-400' : 'border-gray-300'
+                }`}
               >
-                {selectedOption === opt.id && (
-                  <div className="w-3 h-3 bg-white rounded-full" />
-                )}
+                {selectedOption.includes(opt.id) && <div className="w-3 h-3 bg-white rounded-full" />}
               </div>
               <label className="flex-1 cursor-pointer text-lg">{opt.option}</label>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Navigation buttons */}
-      <div className="flex justify-between mt-8">
-        <button className="px-6 py-3 bg-green-400 text-white rounded-full hover:bg-green-500 transition-colors text-lg">
-          Prev
-        </button>
-        <button
-          // onClick={onClickFunction}
-          disabled={loading}
-          className="px-6 py-3 bg-green-400 text-white rounded-full hover:bg-green-500 transition-colors disabled:bg-gray-300 text-lg"
-        >
-          {loading ? "Submitting..." : "Next"}
-        </button>
-      </div>
-
-      {/* Error and success messages */}
-      {error && (
-        <p className="mt-4 text-red-500 text-center text-sm">{error}</p>
-      )}
-      {success && (
-        <p className="mt-4 text-green-500 text-center text-sm">{success}</p>
-      )}
     </div>
   );
 }

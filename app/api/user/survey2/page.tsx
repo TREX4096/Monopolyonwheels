@@ -37,7 +37,7 @@ export default function CareerFairSurvey() {
         const uncompletedResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormid/${process.env.NEXT_PUBLIC_ADMIN_ID}/${userId}`);
         const uncompleted: string[] = uncompletedResponse.data; // Adjusted to correctly type the response
         if (uncompleted.length==0){
-          router.push("/api/spin")
+          router.push("/api/user/feedback")
         }
         let index = 1
         setFormId(uncompleted[index])

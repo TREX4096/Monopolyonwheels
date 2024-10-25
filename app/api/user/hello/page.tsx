@@ -4,6 +4,7 @@ import { useEffect, useState,useContext } from "react";
 import axios from 'axios';
 import Survey from "@/components/survey";
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
 import userContext from "@/context/userContext";
 
 
@@ -25,7 +26,7 @@ interface Form {
 }
 
 export default function CareerFairSurvey() {
-  
+  const router = useRouter();
   const UserContext = useContext(userContext);
   const { data: session } = useSession();
   if (!UserContext) { throw new Error('AdminContextProvider is missing'); }
@@ -50,13 +51,18 @@ export default function CareerFairSurvey() {
       try {
         const uncompletedResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormId/${process.env.NEXT_PUBLIC_ADMIN_ID}/${userId}`);
         const uncompleted: string[] = uncompletedResponse.data; // Adjusted to correctly type the response
+        let index = 0
+        if (uncompleted.length==0){
+          router.push("/api/user/spin")
+        }
+        setFormId(uncompleted[index])
         const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getForm/${uncompleted[0]}/${userId}`;
+        
         const response = await axios.get(url);
+        console.log(response.data)
         const data: Form = response.data;
 
         // Set form state to the fetched form
-       
-        
         setForm(data); 
 
       } catch (error: any) {

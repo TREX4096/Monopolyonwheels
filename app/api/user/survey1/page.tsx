@@ -27,7 +27,6 @@ export default function CareerFairSurvey() {
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
-//   const userId = localStorage.getItem('userId')  // Ensure this is set correctly
   const userId = session?.user?.id ; // Ensure this is set correctly
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export default function CareerFairSurvey() {
         const uncompleted: string[] = uncompletedResponse.data; // Adjusted to correctly type the response
         let index = 0
         if (uncompleted.length==0){
-          router.push("/api/spin")
+          router.push("/api/user/feedback")
         }
         setFormId(uncompleted[index])
         const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getForm/${uncompleted[0]}/${userId}`;

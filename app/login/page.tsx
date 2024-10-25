@@ -104,14 +104,14 @@ export default function SignupPage() {
           gender: formData.gender,
           age: formData.age,
           redirect: true,
-          callbackUrl: '/api/user/spin',
+          callbackUrl: '/api/user/hello',
         });
       }
     }
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/api/user/spin' });
+    signIn('google', { callbackUrl: '/api/user/hello' });
   };
 
   useEffect(() => {
