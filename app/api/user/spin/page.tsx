@@ -367,7 +367,7 @@ const CareerDecisionGame = () => {
       {/* Header with Language Toggle */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-black">Career Decision Game</h1>
-        <div className="bg-white/30 backdrop-blur-sm rounded-full p-1 flex items-center">
+        <div className="opacity-0 bg-white/30 backdrop-blur-sm rounded-full p-1 flex items-center">
           <button
             onClick={() => setLanguage('en')}
             className={`px-3 py-1 rounded-full text-gray-800 text-sm ${language === 'en' ? 'bg-white' : ''
