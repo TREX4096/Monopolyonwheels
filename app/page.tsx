@@ -24,9 +24,10 @@ const WelcomePage = () => {
       <div className="max-w-md mx-auto pt-8">
         {/* Logo and Language Toggle */}
         <div className="flex justify-between items-center mb-8"> {/* Changed items-start to items-center */}
-  <button
+
+  <button 
     onClick={() => setIsArabic(!isArabic)}
-    className="px-3 py-1 rounded-full bg-white/70 hover:bg-white/90 text-sm shadow-sm"
+    className="opacity-0 px-3 py-1 rounded-full bg-white/70 hover:bg-white/90 text-sm shadow-sm"
   >
     {isArabic ? 'English' : 'العربية'}
   </button>

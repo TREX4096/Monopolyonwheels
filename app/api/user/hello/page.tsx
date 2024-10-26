@@ -84,6 +84,7 @@ export default function CareerFairSurvey() {
        formId={formId}
        isSurvey={form.isSurvey}
         questions={form.questions} // Pass the questions to the Survey component
+        //@ts-ignore
         onProgressUpdate={(remaining:number) => {
           // Handle progress updates if needed
           console.log(`Remaining questions: ${remaining}`);

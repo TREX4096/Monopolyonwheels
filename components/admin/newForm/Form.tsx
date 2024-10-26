@@ -47,6 +47,7 @@ const Newform = () => {
           }
         } catch (error) {
           // Extract error details for better debugging
+          //@ts-ignore
           const errorMessage = error?.response?.data?.message || "Error while adding form";
           alert(errorMessage);
         }

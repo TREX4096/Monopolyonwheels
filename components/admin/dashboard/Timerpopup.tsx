@@ -18,7 +18,7 @@ const getValues = (externalValue: string): string[] => {
         case "hours":
             return Array.from({ length: 24 }, (_, i) => (i + 1).toString()); // Returns ["1", "2", ..., "24"]
         case "minutes":
-            return ["2", "3", "5"]; // Returns ["15", "30", "45"]
+            return ["15", "30", "45"]; // Returns ["15", "30", "45"]
         default:
             return []; // Return an empty array for any other value
     }

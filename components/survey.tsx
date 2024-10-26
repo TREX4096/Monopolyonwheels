@@ -51,7 +51,7 @@ const TopBar: React.FC<{ showBack?: boolean }> = ({ showBack = true }) => {
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
         {showBack && (
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push('/api/user/spin')}
             className="mr-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -61,7 +61,7 @@ const TopBar: React.FC<{ showBack?: boolean }> = ({ showBack = true }) => {
           <h1 className="text-2xl font-medium">Monopolyonwheels</h1>
           <button
             onClick={() => setIsEnglish(!isEnglish)}
-            className="text-sm px-3 py-1 rounded-full border bg-gray-50 hover:bg-gray-100 transition-colors"
+            className="opacity-0 text-sm px-3 py-1 rounded-full border bg-gray-50 hover:bg-gray-100 transition-colors"
           >
             {isEnglish ? 'En' : 'عربي'}
           </button>
@@ -179,12 +179,12 @@ const EachQuestion: React.FC<EachQuestionProps> = ({
       </div>
 
       <div className="flex justify-between mt-8">
-        <button
+        {/* <button
           onClick={() => handleNavigation('prev')}
           className="px-6 py-2 bg-green-400 text-white rounded-full hover:bg-green-500 transition-colors"
         >
           Prev
-        </button>
+        </button> */}
         <button
           onClick={() => handleNavigation('next')}
           disabled={selectedOption.length === 0 || loading}

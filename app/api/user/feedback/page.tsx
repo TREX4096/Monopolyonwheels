@@ -2,9 +2,6 @@
 import React, { useState } from 'react'
 import { IoIosStar } from "react-icons/io";
 import axios from 'axios';
-import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { TopBar } from '@/components/survey';
 import { useSession } from 'next-auth/react';
 
 interface BoxProps {
@@ -83,7 +80,7 @@ const page = () => {
         className='colorBg w-[100vw] h-[100vh] flex justify-center items-center p-4' 
     
       >
-        <TopBar showBack={true}/>
+        {/* <TopBar showBack={true}/> */}
         <div className='flex flex-col p-6 bg-white rounded-lg shadow-md max-w-md w-full opacity-[0.85] bg-opacity-[0.38]'>
           <div className='text-xl text-center font-semibold mb-4'>How Much did you like the game</div>
          

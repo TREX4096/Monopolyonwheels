@@ -20,7 +20,7 @@ export default function SignupPage() {
 
   // Previous helper functions remain the same
   const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
-  
+  //@ts-ignore
   const handleSendOTP = async (e) => {
     e.preventDefault();
     sessionStorage.removeItem('userOTP');
@@ -38,8 +38,8 @@ export default function SignupPage() {
       });
   
       // Alert user with the generated OTP
-      alert(`Your OTP is: ${generatedOTP}`);
-      console.log(response);
+      // alert(`Your OTP is: ${generatedOTP}`);
+      // console.log(response);
       
       // Update state to indicate OTP was sent
       setIsOTPSent(true);
@@ -79,6 +79,7 @@ export default function SignupPage() {
     setOtpError('Invalid OTP. Please try again.');
     return false;
   };
+  //@ts-ignore
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -193,7 +194,9 @@ export default function SignupPage() {
                   className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
                   required
                 />
+                
                 <select
+                aria-label="Choose an option"
                   value={formData.gender}
                   onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                   className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
