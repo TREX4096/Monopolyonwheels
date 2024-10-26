@@ -111,7 +111,11 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/api/user/hello' });
+    signIn('google', { 
+      callbackUrl: '/api/user/hello'
+     }
+    );
+      
   };
 
   useEffect(() => {
