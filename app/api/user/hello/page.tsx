@@ -18,11 +18,14 @@ interface Question {
   question: string;
   questionId: string;
   options: Option[];
+  isMultipleCorrect:boolean;
   ismarked: boolean; // Changed to boolean (lowercase)
 }
 
 interface Form {
   questions: Question[];
+  name:string,
+  isSurvey:boolean
 }
 
 export default function CareerFairSurvey() {
@@ -38,11 +41,7 @@ export default function CareerFairSurvey() {
 
   const userId = session?.user?.id  // Ensure this is set correctly
  
-  // const setLocalstorage = ()=>{
-  //   console.log(session?.user?.id);
-    
-  //   localStorage.setItem('userId', session?.user?.id);
-  // }
+ 
 
   useEffect(() => {
 
@@ -80,13 +79,12 @@ export default function CareerFairSurvey() {
 
   return (
     <div>
-       {/* <div className="bg-yellow-300 text-black text-center p-4 text-xl font-semibold rounded-lg mb-6">
-        Answer these few questions to start the game!
-      </div> */}
+  
       <Survey 
        formId={formId}
+       isSurvey={form.isSurvey}
         questions={form.questions} // Pass the questions to the Survey component
-        onProgressUpdate={(remaining) => {
+        onProgressUpdate={(remaining:number) => {
           // Handle progress updates if needed
           console.log(`Remaining questions: ${remaining}`);
         }}

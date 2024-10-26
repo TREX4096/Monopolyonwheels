@@ -5,6 +5,9 @@ import axios from 'axios';
 import Survey from "@/components/survey";
 import { useSession } from "next-auth/react";
 
+
+
+
 interface Option {
   id: string;
   option: string;
@@ -14,13 +17,15 @@ interface Question {
   question: string;
   questionId: string;
   options: Option[];
+  isMultipleCorrect:boolean;
   ismarked: boolean; // Changed to boolean (lowercase)
 }
 
 interface Form {
   questions: Question[];
+  name:string,
+  isSurvey:boolean
 }
-
 export default function CareerFairSurvey() {
   const router = useRouter();
   const [form, setForm] = useState<Form | null>(null);
@@ -67,8 +72,9 @@ export default function CareerFairSurvey() {
     <div>
       <Survey 
        formId={formId}
+       isSurvey={form.isSurvey}
         questions={form.questions} // Pass the questions to the Survey component
-        onProgressUpdate={(remaining) => {
+        onProgressUpdate={(remaining:number) => {
           // Handle progress updates if needed
           console.log(`Remaining questions: ${remaining}`);
         }}

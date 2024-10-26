@@ -161,7 +161,7 @@ const EachQuestion: React.FC<EachQuestionProps> = ({
 };
 
 
-const Survey: React.FC<{ questions: Question[]; formId: string }> = ({ questions, formId }) => {
+const Survey: React.FC<{ questions: Question[]; formId: string,isSurvey:boolean }> = ({ questions, formId,isSurvey }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -177,10 +177,13 @@ const Survey: React.FC<{ questions: Question[]; formId: string }> = ({ questions
     setError(null);
 
     try {
+
+      console.log(userId);
+      
       if (direction === 'next' && selectedOption.length > 0 && userId) {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${userId}/${process.env.NEXT_PUBLIC_USER_ID}`;
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/mark/${userId}`;
         const body = {
-          formId,
+          formId,isSurvey,
           questionId: unmarkedQuestions[currentQuestionIndex].questionId,
           optionIds: selectedOption,
         };
