@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { ChevronLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -33,12 +33,13 @@ interface EachQuestionProps {
   ismarked: boolean;
   onOptionSelect: (optionId: string[]) => void;
   selectedOption: string[];
-  handleNavigation: (direction: 'prev' | 'next') => Promise<void>;
+  handleNavigation: (direction: 'prev' | 'next',redirectUrl:string) => Promise<void>;
   loading: boolean;
   isMultipleCorrect: boolean;
   isSurvey: boolean;
   answerFeedback: AnswerFeedback | null;
   showingFeedback: boolean;
+  redirectUrl:string
 }
 
 // TopBar Component remains the same
@@ -94,7 +95,8 @@ const EachQuestion: React.FC<EachQuestionProps> = ({
   isMultipleCorrect,
   isSurvey,
   answerFeedback,
-  showingFeedback
+  showingFeedback,
+  redirectUrl
 }) => {
   const getOptionStyle = (optionId: string) => {
     if (!showingFeedback) {
@@ -186,7 +188,7 @@ const EachQuestion: React.FC<EachQuestionProps> = ({
           Prev
         </button> */}
         <button
-          onClick={() => handleNavigation('next')}
+          onClick={() => handleNavigation('next',redirectUrl)}
           disabled={selectedOption.length === 0 || loading}
           className="px-6 py-2 bg-green-400 text-white rounded-full hover:bg-green-500 transition-colors disabled:bg-gray-300"
         >
@@ -204,10 +206,11 @@ const EachQuestion: React.FC<EachQuestionProps> = ({
   );
 };
 
-const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolean }> = ({
+const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolean,redirectUrl:string }> = ({
   questions,
   formId,
-  isSurvey
+  isSurvey,
+  redirectUrl
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
@@ -220,7 +223,7 @@ const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolea
   const [answerFeedback, setAnswerFeedback] = useState<AnswerFeedback | null>(null);
   const [showingFeedback, setShowingFeedback] = useState<boolean>(false);
 
-  const handleNavigation = async (direction: 'prev' | 'next') => {
+  const handleNavigation = async (direction: 'prev' | 'next',redirectUrl:string) => {
     if (direction === 'prev' && currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
       setSelectedOption([]);
@@ -248,7 +251,7 @@ const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolea
       if (isSurvey) {
         if (response.data.marked) {
           if (currentQuestionIndex === unmarkedQuestions.length - 1) {
-            router.push('/api/user/spin');
+            router.push(`${redirectUrl}`);
           } else {
             setCurrentQuestionIndex((prev) => prev + 1);
             setSelectedOption([]);
@@ -262,7 +265,7 @@ const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolea
         } else {
           // Move to next question after showing feedback
           if (currentQuestionIndex === unmarkedQuestions.length - 1) {
-            router.push('/api/user/spin');
+            router.push(`${redirectUrl}`);
           } else {
             setCurrentQuestionIndex((prev) => prev + 1);
             setSelectedOption([]);
@@ -303,6 +306,7 @@ const Survey: React.FC<{ questions: Question[]; formId: string; isSurvey: boolea
             isSurvey={isSurvey}
             answerFeedback={answerFeedback}
             showingFeedback={showingFeedback}
+            redirectUrl={redirectUrl}
           />
         </div>
 

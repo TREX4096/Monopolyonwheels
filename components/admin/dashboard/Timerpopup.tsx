@@ -3,11 +3,14 @@ import React,{ useState } from 'react';
 import DropDown from './dropDown';
 import axios, { AxiosError } from 'axios';
 import { ClipLoader } from 'react-spinners';
+import { useSession } from 'next-auth/react';
 
 interface PopupProps {
   
   onClose: () => void; // Define the type for onClose
   functionName:string
+  refresh:boolean;
+  setRefresh: (value:boolean)=>void
 }
 
 
@@ -27,15 +30,16 @@ const getValues = (externalValue: string): string[] => {
 // Example usage:
 const selectedValue = "days"; // This could be "hours" or "minutes" as well
 const values = getValues(selectedValue);
-console.log(values); // Output: ["1", "2", "3", "4", "5", "6", "7"]
 
-const Popup: React.FC<PopupProps> = ({ onClose,functionName}) => {
+
+const Popup: React.FC<PopupProps> = ({ onClose,functionName,refresh,setRefresh}) => {
 
     const units = ["days","hours","minutes"]
     
     const [value, setValue] = useState("")
-    const [isLoading, setisLoading] = useState(false)
     const [unit, setUnit] = useState(units[2])
+    const { data: session } = useSession()
+    const token = session?.user?.token
 
     const values = getValues(unit)
 
@@ -50,16 +54,20 @@ const Popup: React.FC<PopupProps> = ({ onClose,functionName}) => {
   
   
       try {
-        setisLoading(true)
+
           const response = await axios.post(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/putTimer/${process.env.NEXT_PUBLIC_ADMIN_ID}`,
-              requestData
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/putTimer`,
+              requestData,
+              {
+                  headers: {
+                      Authorization: token,
+                  },
+              }
           );
           if(response.status===200){
-            console.log('Response:', response.data);
-            console.log(requestData);
-            setisLoading(false)
+            
             onClose()
+            setRefresh(!refresh)
             
 
           }
@@ -82,11 +90,7 @@ const Popup: React.FC<PopupProps> = ({ onClose,functionName}) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-     {isLoading ?
-      (<div className='w-full h-[100%] flex flex-row justify-center items-center'>
-        <ClipLoader color="#00BFFF" loading={true} size={50} />
-      </div>)
-     :
+    
       <div className="bg-white rounded-lg p-6 shadow-lg">
 
         {/* Title */}
@@ -117,7 +121,6 @@ const Popup: React.FC<PopupProps> = ({ onClose,functionName}) => {
             </div>
       </div>
 
-     }
     </div>
 
     

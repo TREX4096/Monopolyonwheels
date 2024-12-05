@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import AppModeContext from '@/context/appMode';
 import axios from 'axios';
+import { useSession } from 'next-auth/react';
 
 interface taskDetail{
     updatedAt:string,
@@ -22,6 +23,8 @@ const TimerCard = ({heading,popup,setPopup,resetOrNot,task, setFunctionName}:tim
     const modeContext = useContext(AppModeContext);
     if (!modeContext) { throw new Error('AppModeContextProvider is missing'); }
     const { lightmode, setLightMode } = modeContext;
+    const { data: session } = useSession();
+    const token = session?.user.token
 
     const handleReset = async()=>{
 
@@ -49,7 +52,7 @@ const TimerCard = ({heading,popup,setPopup,resetOrNot,task, setFunctionName}:tim
                     <span>{`Last Updated at:-  ${task?.updatedAt}`}</span>
                     <span>{
                         task?.timeLeft !== null ?
-                    `Time Left:- ${task?.timeLeft}` :
+                    `Will Update at:- ${task?.timeLeft}` :
                     `Task Completed`
                     }</span>
                 </div>

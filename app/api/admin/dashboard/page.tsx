@@ -1,219 +1,170 @@
-"use client"
-import React, { useContext, useEffect, useState } from 'react'
-import AppModeContext from '@/context/appMode';
-import axios from 'axios';
-import { ClipLoader } from 'react-spinners';
-import LeaderBoard from '@/components/admin/dashboard/leaderBoard';
-import ShortLeaderBoard from '@/components/admin/ShortleaderBoard';
-import { Count } from '@/components/admin/count';
-import TimerCard from '@/components/admin/dashboard/timer';
-import Popup from '@/components/admin/dashboard/Timerpopup';
-import { Plus } from "lucide-react"
+"use client";
+import React, { useContext, useEffect, useState } from "react";
+import AppModeContext from "@/context/appMode";
+import axios from "axios";
+import { ClipLoader } from "react-spinners";
+import LeaderBoard from "@/components/admin/dashboard/leaderBoard";
+import ShortLeaderBoard from "@/components/admin/ShortleaderBoard";
+import TimerCard from "@/components/admin/dashboard/timer";
+import Popup from "@/components/admin/dashboard/Timerpopup";
+import { useSession } from "next-auth/react";
 
-interface user {
+interface User {
   name: string;
   gender: string;
   age: string;
-  points: number
+  points: number;
 }
 
-
 export default function Dashboard() {
-  const [users, setUsers] = useState([])
-  const [sessionUsers, setSessionUsers] = useState([])
-  const [form, setForms] = useState([])
-  const [functionName, setFunctionName] = useState("")
-  const [lastSession, setLastSession] = useState([]);
-  const [session, setSession] = useState([]);
-  const [mega, setMega] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [sessionUsers, setSessionUsers] = useState<User[]>([]);
+  const [functionName, setFunctionName] = useState<string>("");
+  const [lastSession, setLastSession] = useState<User[]>([]);
+  const [Session, setSession] = useState<User[]>([]);
+  const [mega, setMega] = useState<User[]>([]);
   const [isPopupOpen, setPopupOpen] = useState(false);
-  const [isLoading, setisLoading] = useState(false);
-
+  const [isLoading, setisLoading] = useState(true); // Default true
+  const [refresh, setRefresh] = useState<boolean>(false);
 
   const modeContext = useContext(AppModeContext);
-  if (!modeContext) { throw new Error('AppModeContextProvider is missing'); }
-  const { lightmode, setLightMode } = modeContext;
+  if (!modeContext) {
+    throw new Error("AppModeContextProvider is missing");
+  }
+  const { lightmode } = modeContext;
 
+  const { data: session, status } = useSession();
+  const token = session?.user?.token;
 
-
-
+  // API call to fetch users
   const getUsers = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAllusers/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
-
-
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAllusers`;
       setisLoading(true);
 
-
-      const response = await axios.get(url);
-      const data = response.data;
-
-      setUsers(data);
-
-
+      const response = await axios.get(url, {
+        headers: { Authorization: token },
+      });
+      setUsers(response.data);
     } catch (error: any) {
-      // Axios error objects contain the response inside error.response
-      if (error.response) {
-        console.error('Error fetching forms:', error.response.status, error.response.data);
-      } else {
-        console.error('Error fetching forms:', error.message);
-      }
+      console.error("Error fetching users:", error.response?.data || error.message);
     } finally {
       setisLoading(false);
     }
   };
+
+  // API call to fetch admin details
   const getAdmin = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAdmin/${process.env.NEXT_PUBLIC_ADMIN_ID}`;
-
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAdmin`;
       setisLoading(true);
 
-
-
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        headers: { Authorization: token },
+      });
 
       if (response.status === 200) {
-        setLastSession(response.data.lastSessionWinners)
-        setSession(response.data.tasks.sessionWinner)
-        setMega(response.data.tasks.setAllCareerPointsToZero)
+        setLastSession(response.data.lastSessionWinners);
+        setSession(response.data.tasks.sessionWinner);
+        setMega(response.data.tasks.setAllCareerPointsToZero);
       }
-      else {
-        console.log(response.data);
-
-      }
-
-
-
-
     } catch (error: any) {
-      // Axios error objects contain the response inside error.response
-      if (error.response) {
-        console.error('Error fetching forms:', error.response.status, error.response.data);
-      } else {
-        console.error('Error fetching forms:', error.message);
-      }
+      console.error("Error fetching admin details:", error.response?.data || error.message);
     } finally {
       setisLoading(false);
     }
   };
+
+  // API call to fetch session users
   const getSessionUsers = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getSessionusers/${process.env.NEXT_PUBLIC_ADMIN_ID}/sessionWinner`;
-
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getSessionusers/sessionWinner`;
       setisLoading(true);
 
-      const response = await axios.get(url);
-      const data = response.data;
-
-      setSessionUsers(data.users);
-
-
+      const response = await axios.get(url, {
+        headers: { Authorization: token },
+      });
+      setSessionUsers(response.data.users);
     } catch (error: any) {
-      // Axios error objects contain the response inside error.response
-      if (error.response) {
-        console.log('Error fetching forms:', error.response.status, error.response.data);
-      } else {
-        console.log('Error fetching forms:', error.message);
-      }
-    }
-    finally {
+      console.error("Error fetching session users:", error.response?.data || error.message);
+    } finally {
       setisLoading(false);
     }
   };
 
-
+  // Fetch all data after session is authenticated
   useEffect(() => {
     const fetchData = async () => {
-
       try {
-        await getUsers();          // Wait for getUsers to complete
-        await getAdmin();          // Wait for getUsers to complete
-        await getSessionUsers();   // Wait for getSessionUsers to complete
+        if (status === "authenticated" && token) {
+          await getUsers();
+          await getAdmin();
+          await getSessionUsers();
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
-
-      // Only set to false after both calls are done
     };
 
-    fetchData();  // Call the async function
-
-  }, [Popup]);
-
-
-
+    fetchData();
+  }, [status, token, refresh]);
 
   return (
+    !isLoading ? (
+      <div className={`flex flex-col-reverse  md:flex-row p-4 md:items-start justify-between`}>
+        {/* Mega Leaderboard */}
+        <LeaderBoard lightmode={lightmode} heading="MegaLeaderboard" users={users} />
 
-    !isLoading ?
-
-      (<div className={`flex flex-col-reverse md items-center md:flex-row p-4 md:items-start justify-between`}>
-
-
-        <LeaderBoard lightmode={lightmode} heading='MegaLeaderboard' users={users} />
-
-
-
+        {/* Main Section */}
         <div className={`w-full h-[90%] px-4 ${lightmode ? "text-black" : "text-darkText"} flex-col justify-between`}>
-          <div className='flex flex-row gap-4'>
-
-
-            {/* total user card */}
+          <div className="flex flex-row gap-4">
+            {/* Total Users Card */}
             <div
-              className={`min-w-[150px] h-[180px] rounded-xl p-6 flex flex-col justify-center items-center gap-3 ${lightmode ? "text-black shadow-lg" : "text-darkText bg-darkBg  border-[1px] border-darkBorder"}`}
+              className={`min-w-[150px] h-[180px] rounded-xl p-6 flex flex-col justify-center items-center gap-3 ${
+                lightmode ? "text-black shadow-lg" : "text-darkText bg-darkBg border-[1px] border-darkBorder"
+              }`}
             >
-              <h3 className='text-[19px] font-bold'>Total Users</h3>
-              <span className='text-[23px] font-medium'>{
-                users.length
-              }</span>
-
+              <h3 className="text-[19px] font-bold">Total Users</h3>
+              <span className="text-[23px] font-medium">{users.length}</span>
             </div>
-            {/* Last Session Winner */}
-            <ShortLeaderBoard heading='Last Session Winners' lightmode={lightmode} users={lastSession} />
 
-
-
-            {/* Add Form */}
-            {/* <div
-              className={`w-[150px] h-[150px] rounded-xl p-6 flex flex-col items-center gap-3 ${lightmode ? "text-black shadow-lg" : "text-darkText bg-darkBg  border-[1px] border-darkBorder"}`}
-            >
-              <h3 className='text-[19px] font-bold'>Add Form</h3>
-              <span className='text-[23px] font-medium'>{
-                <Plus />
-              }</span>
-
-            </div> */}
-
+            {/* Last Session Winners */}
+            <ShortLeaderBoard heading="Last Session Winners" lightmode={lightmode} users={lastSession} />
           </div>
 
           <div>
-
-
-            <TimerCard heading='MegaLeaderBoard' popup={isPopupOpen} setPopup={setPopupOpen} resetOrNot={true} task={mega} setFunctionName={setFunctionName} />
-            <TimerCard heading='Session LeaderBoard' popup={isPopupOpen} setPopup={setPopupOpen}
-              resetOrNot={false} task={session} setFunctionName={setFunctionName} />
-
+            {/* Timer Cards */}
+            <TimerCard
+              heading="MegaLeaderBoard"
+              popup={isPopupOpen}
+              setPopup={setPopupOpen}
+              resetOrNot={true}
+              task={mega}
+              setFunctionName={setFunctionName}
+            />
+            <TimerCard
+              heading="Session LeaderBoard"
+              popup={isPopupOpen}
+              setPopup={setPopupOpen}
+              resetOrNot={false}
+              task={Session}
+              setFunctionName={setFunctionName}
+            />
           </div>
-
-
-
-
         </div>
 
+        {/* Session Leaderboard */}
+        <LeaderBoard lightmode={lightmode} heading="LeaderBoard" users={sessionUsers} />
 
-
-
-        {/* LeaderBoard */}
-        <LeaderBoard lightmode={lightmode} heading={"LeaderBoard"} users={sessionUsers} />
-
-        {isPopupOpen && <Popup onClose={() => { setPopupOpen(false) }}
-          functionName={functionName} />}
+        {/* Popup */}
+        {isPopupOpen && (
+          <Popup onClose={() => setPopupOpen(false)} functionName={functionName} refresh={refresh} setRefresh={setRefresh} />
+        )}
       </div>
-      ) :
-      (<div className='w-full h-[100vh] flex flex-row justify-center items-center'>
+    ) : (
+      <div className="w-full h-[100vh] flex flex-row justify-center items-center">
         <ClipLoader color="#00BFFF" loading={true} size={50} />
-      </div>)
-  )
+      </div>
+    )
+  );
 }
-
-

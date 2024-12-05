@@ -2,17 +2,25 @@
 
 import { createContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
 
+interface Option {
+  text: string;
+  isCorrect: boolean;
+}
+
+
 interface Question{
   question:string,
-  options:string[],
-  multiple:boolean
-
+  options:Option[],
+  multiple:boolean,
+  textAllowed:boolean,
 }
 
 // Define the shape of the context
 interface adminContextType {
   refresh: boolean;
   setRefresh: Dispatch<SetStateAction<boolean>>;
+  saved: boolean;
+  setIsSaved: Dispatch<SetStateAction<boolean>>;
   optionIndex:string[]
   noOfQuestion:number,
   setNoofQuestion:(value:number)=> void
@@ -32,6 +40,7 @@ interface adminContextProviderProps {
 // Create a provider component
 export function AdminContextProvider({ children }: adminContextProviderProps) {
   const [refresh,setRefresh] = useState<boolean>(false);
+  const [saved,setIsSaved] = useState<boolean>(false);
   const [noOfQuestion,setNoofQuestion] = useState<number>(1)
   const optionIndex = ["A","B","C","D"]
   const [Form,setForm] = useState<Question[]>([])
@@ -43,7 +52,9 @@ export function AdminContextProvider({ children }: adminContextProviderProps) {
       optionIndex,
       noOfQuestion,setNoofQuestion,
       Form,
-      setForm
+      setForm,
+      saved,
+      setIsSaved
 
 
      }}>

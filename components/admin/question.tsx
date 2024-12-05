@@ -18,11 +18,13 @@ interface QuestionProps {
   question: string;
   options: Option[];
   edit: boolean
+  refresh:boolean;
+  setRefresh: (value:boolean)=>void
 }
 
-const Question: React.FC<QuestionProps> = ({ id, index, question, options, edit }) => {
+const Question: React.FC<QuestionProps> = ({ id, index,refresh,setRefresh,question, options, edit }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [editedQuestion, setEditedQuestion] = useState(question);
   const [questionOptions, setQuestionOptions] = useState(options);
 
@@ -35,7 +37,7 @@ const Question: React.FC<QuestionProps> = ({ id, index, question, options, edit 
 
   const handleSave = async () => {
     setIsEditing(false);
-    setIsLoading(true)
+
 
     try {
 
@@ -49,7 +51,7 @@ const Question: React.FC<QuestionProps> = ({ id, index, question, options, edit 
       const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/updateQuestion`, body);
 
       if (response.status === 200) {
-        setIsLoading(false)
+      setRefresh(!refresh)
 
       }
     } catch (error) {
@@ -59,15 +61,14 @@ const Question: React.FC<QuestionProps> = ({ id, index, question, options, edit 
 
 
   return (
-    <div>{!isLoading ?
 
-      (<div className={`my-5 p-5
+      <div className={`my-5 p-5
       ${lightmode ? "border-gray-200 bg-white shadow-lg border-[1px] " : "text-darkText bg-darkBg border-[1px] border-darkBorder"}`}>
         {
           (edit && isEditing) ? (
             <div className='flex flex-row items-center justify-between mb-3'>
               <input
-                className='w-full  border border-gray-300 rounded px-2 py-1 focus:outline-none'
+                className={`w-full ${lightmode ? "border-gray-200 bg-white shadow-lg border-[1px] " : "text-darkText bg-darkBg border-[1px] border-darkBorder"} rounded px-2 py-1 focus:outline-none`} 
                 type="text"
                 value={editedQuestion}
                 onChange={(e) => setEditedQuestion(e.target.value)}
@@ -100,19 +101,14 @@ const Question: React.FC<QuestionProps> = ({ id, index, question, options, edit 
           {questionOptions.map((opt, index) => (
             <div key={opt.id} >
               <Option id={opt.id} idx={index} option={opt.option} edit={edit}
-                setLoading={setIsLoading} />
+                refresh={refresh} 
+                setRefresh={setRefresh} />
             </div>
           ))}
         </div>
-      </div>)
-      :
-      (
-        <div
-        className='w-full h-[250px] flex flex-row justify-center items-center'
-        ><ClipLoader color="#00BFFF" loading={true} size={50}  /></div>
-      )
+      </div>
+   
 
-    }</div>
   );
 };
 

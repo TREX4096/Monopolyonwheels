@@ -24,10 +24,10 @@ export function AppModeContextProvider({ children }: AppModeContextProviderProps
   // Apply theme to the body
   useEffect(() => {
     if (lightmode) {
-      // document.body.classList.remove('dark');
+      document.body.classList.remove('dark');
       localStorage.setItem('lightmode', 'true'); // Store preference
     } else {
-      // document.body.classList.add('dark');
+      document.body.classList.add('dark');
       localStorage.setItem('lightmode', 'false');
     }
   }, [lightmode]);

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Survey from "@/components/survey";
 import { useSession } from "next-auth/react";
+import { ClipLoader } from 'react-spinners';
 
 
 
@@ -33,43 +34,56 @@ export default function CareerFairSurvey() {
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const userId = session?.user?.id ; // Ensure this is set correctly
+  const token = session?.user.token
 
   useEffect(() => {
     const getForms = async () => {
       setLoading(true); // Set loading true before fetching
       try {
-        const uncompletedResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormId/${process.env.NEXT_PUBLIC_ADMIN_ID}/${userId}`);
-        const uncompleted: string[] = uncompletedResponse.data; // Adjusted to correctly type the response
-        let index = 0
-        if (uncompleted.length==0){
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormId/${userId}`,
+          {
+            headers: {
+              Authorization: token,
+            }}
+        );
+
+
+        
+        if(response.status !== 200){
+          throw new Error(response.data)
+        }
+        //@ts-ignore
+        else if (response.status == 206){
           router.push("/api/user/feedback")
         }
-        setFormId(uncompleted[index])
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getForm/${uncompleted[0]}/${userId}`;
-        
-        const response = await axios.get(url);
-        console.log(response.data)
-        const data: Form = response.data;
+        else{
+          setFormId(response.data.formId)
+          setForm(response.data.form);
+        }
 
-        // Set form state to the fetched form
-        setForm(data); 
+        
+        
 
       } catch (error: any) {
         console.error('Error fetching forms:', error.response ? `${error.response.status}: ${error.response.data}` : error.message);
       } finally {
         setLoading(false);
+        
       }
     };
 
     getForms();
   }, [userId]); // Runs once when the component mounts
 
-  if (loading) return <div>Loading...</div>;
-  if (!form) return <div>No form available</div>;
+  if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
+  <ClipLoader color="#00BFFF" loading={true} size={50} />
+</div>;
+  if (!form) router.push("/api/user/feedback");
 
   return (
   
-    <div>
+    <div>{
+      form&&
       <Survey 
        formId={formId}
        isSurvey={form.isSurvey}
@@ -80,7 +94,8 @@ export default function CareerFairSurvey() {
           console.log(`Remaining questions: ${remaining}`);
         }}
         userId={userId} // Pass userId to the Survey component
-      />
+        redirectUrl="/api/user/feedback" // Redirect URL after the survey is completed
+      />}
     </div>
   );
 }

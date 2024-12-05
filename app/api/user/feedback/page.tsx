@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { IoIosStar } from "react-icons/io";
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
-
+import { useRouter } from 'next/navigation';
 interface BoxProps {
     heading: string,
     setFunction: (value: string) => void
@@ -18,8 +18,9 @@ const page = () => {
     const [notLiked, setNotLiked] = useState("none")
     const { data: session } = useSession();
     const userId = session?.user?.id ; // Ensure this is set correctly
+    const token = session?.user?.token; // Ensure this is set correctly
 
-    
+    const router = useRouter()
 
 
     const handleStarClick = (index: number) => {
@@ -32,7 +33,7 @@ const page = () => {
         }
     };
     const handleSubmit = async () => {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/feedback/${process.env.NEXT_PUBLIC_ADMIN_ID}/${userId}`;
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/feedback/${userId}`;
         const body = {
           stars: stars + 1,  // Increment stars correctly
           suggestion,
@@ -48,16 +49,19 @@ const page = () => {
       
         try {
           // Make the POST request using fetch
-          const response = await axios.post(url, body);
+          const response = await axios.post(url, body,{
+            headers: {
+              Authorization: token, 
+          }});
       
           // Parse the response body as JSON
           const data = await response.data;
           
           console.log('Response:', data);
       
-          if ((response.status === 201) || (response.status === 210)) {
+          if (response.status === 201) {
             // Redirect user on success
-            window.location.href = 'https://abudhabi.iitd.ac.in/';
+            router.push("/api/user/spin")
           } else {
             // Handle other response statuses if needed
             alert('Unexpected response received.');

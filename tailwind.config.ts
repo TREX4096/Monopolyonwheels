@@ -11,7 +11,11 @@ const config: Config = {
   	extend: {
   		colors: {
   			background: 'var(--background)',
-  			foreground: 'var(--foreground)'
+  			foreground: 'var(--foreground)',
+  			darkBg: 'rgb(9 9 11)',
+  			lightBg: 'white',
+  			darkBorder: '#27272a',
+  			darkText: '#fafafa'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

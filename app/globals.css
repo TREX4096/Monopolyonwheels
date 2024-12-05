@@ -7,7 +7,9 @@
 .scrollbar-hide::-webkit-scrollbar {
     display: none; /* Safari and Chrome */
   }
-  
+  .dark{
+    background-color: rgb(9 9 11);
+  }
   /* Hide scrollbar for IE and Edge */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* Internet Explorer and Edge */
@@ -27,8 +29,7 @@
   }
   @layer base {
   :root {
-        --radius: 0.5rem
-    }
+        --radius: 0.5rem}
 }
 
   

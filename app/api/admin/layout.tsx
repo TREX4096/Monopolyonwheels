@@ -21,10 +21,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { lightmode, setLightMode } = context;
 
   return (
-    <div className={`${lightmode ? "bg-lightBg" : "bg-darkBg"} z-[10000]`}>
+    <div className={`${lightmode ? "bg-lightBg" : "bg-darkBg"} `}>
 
       <div className={`px-3 h-[55px] flex flex-row justify-between items-center sticky top-0
-         ${lightmode ?  'text-gray-500' : ' text-darkText border-b-[1px] border-darkBorder'} backdrop-blur-md`}
+         ${lightmode ?  'text-gray-500' : ' text-darkText border-b-[1px] border-darkBorder'} backdrop-blur-md z-[10000]`}
 >
 
 
@@ -36,14 +36,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href={"createform"}>Add</Link>
         </div>
           
-          <div className= 'flex flex-row items-center gap-2 cursor-pointer' onClick={() => setLightMode(!lightmode)}>
-        
-        {
-          lightmode ? <Sun/> :  <MoonStar/>
-        }
-      
-
-          </div>
+            <div className='flex flex-row items-center gap-2 cursor-pointer' onClick={() => { 
+            setLightMode(!lightmode); 
+            localStorage.setItem("lightmode", (!lightmode).toString());
+            }}>
+            {lightmode ? <Sun /> : <MoonStar />}
+            </div>
 
       </div>
 

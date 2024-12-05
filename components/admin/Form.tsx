@@ -9,15 +9,18 @@ import axios from 'axios';
 interface FormProps {
   form: {
     formid:string;
+    name: string;
     form: {
       question: string;
       options: string[];
     }[];
   };
   formIndex: number;
+  refresh:boolean;
+  setRefresh: (value:boolean)=>void
 }
 
-const Form: React.FC<FormProps> = ({ form, formIndex }) => {
+const Form: React.FC<FormProps> = ({ form, formIndex,refresh,setRefresh }) => {
   const [editForm, setEditForm] = useState(false);
 
   const modeContext = useContext(AppModeContext);
@@ -33,6 +36,8 @@ const Form: React.FC<FormProps> = ({ form, formIndex }) => {
         
       if(response.status===200){
         alert("Form Deleted Successfully")
+        setRefresh(!refresh)
+        
       }
       // Log success message or handle successful response
       console.log(response.data.message); // Display the success message
@@ -54,14 +59,14 @@ const Form: React.FC<FormProps> = ({ form, formIndex }) => {
   return (
     <div
       key={formIndex}
-      className={`rounded-lg p-4 ${lightmode ? "border-gray-200 bg-white shadow-lg border-[1px] " : "text-darkText bg-darkBg border-[1px] border-darkBorder"}`}
+    className={`rounded-lg p-4 ${lightmode ? "border-gray-200 bg-white shadow-lg border-[1px] " : "text-darkText bg-darkBg border-[1px] border-darkBorder"}`}
     >
       <div className="flex flex-col gap-2 md:flex-row justify-between items-center">
-        <h1 className="text-center font-bold">Form {formIndex + 1}</h1>
+        <h1 className="text-center font-bold">{form.name}</h1>
         <div className="flex flex-row justify-between items-center gap-3">
-          <button className={`px-3 py-2  ${lightmode ? "bg-blue-400 text-white" : "bg-darkBg border-[1px] border-darkBorder text-darkText"} text-dark rounded-lg`}>
+          {/* <button className={`px-3 py-2  ${lightmode ? "bg-blue-400 text-white" : "bg-darkBg border-[1px] border-darkBorder text-darkText"} text-dark rounded-lg`}>
             Add Question
-          </button>
+          </button> */}
           <button
             className={`px-3 py-2  ${lightmode ? "bg-blue-400 text-white" : "bg-darkBg border-[1px] border-darkBorder text-darkText"} ${editForm && "bg-red-600 text-white"} text-dark rounded-lg`}
             onClick={() => {
@@ -88,6 +93,8 @@ const Form: React.FC<FormProps> = ({ form, formIndex }) => {
           question={question.question}
           options={question.options}
           edit={editForm}
+          refresh={refresh} 
+          setRefresh={setRefresh}
 
         />
       ))}

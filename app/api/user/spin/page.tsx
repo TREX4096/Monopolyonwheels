@@ -3,6 +3,7 @@ import axios from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Link } from 'lucide-react';
 
 // Type definitions
 interface Leader {
@@ -143,13 +144,9 @@ const CareerDecisionGame = () => {
   const [rank, setRank] = useState<number | undefined>(undefined);
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
   const [rotation, setRotation] = useState(0);
-  const [showGetSpinsModal, setShowGetSpinsModal] = useState(false);
 
-  const [tasks] = useState([
-    { id: 1, spins: 10, title: 'Task 1', path: '/api/user/survey1' },
-    { id: 2, spins: 10, title: 'Task 2', path: '/api/user/survey2' }
-  ]);
 
   // Canvas setup and drawing functions
   const setupCanvas = (canvas: HTMLCanvasElement) => {
@@ -306,7 +303,11 @@ const CareerDecisionGame = () => {
       );
 
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}/${process.env.NEXT_PUBLIC_ADMIN_ID}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}`, {
+        headers: {
+          Authorization: session.user.token,
+        }
+      }
       );
 
       setDetail(response.data);
@@ -318,27 +319,55 @@ const CareerDecisionGame = () => {
     }
   };
 
-  const handleTaskClick = (path: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowGetSpinsModal(false);
-    router.push(path);
-  };
+  useEffect(() => {
+    const checkCompletion = async () => {
+      if (session?.user?.id) {
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/checkFeedback/${session?.user.id}`;
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Authorization: session.user.token,
+            },
+          });
+
+          if (response.status === 203) {
+            setGameCompleted(true);
+          } else if (response.status === 403) {
+            setGameCompleted(false);
+          } else {
+            console.log(response);
+          }
+        } catch (error) {
+          console.error('Error checking completion:', error);
+        }
+      }
+    };
+
+    checkCompletion();
+  }, [session]);
 
   // Effects
   useEffect(() => {
     if (session?.user?.id) {
-      axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}/${process.env.NEXT_PUBLIC_ADMIN_ID}`)
-        .then((response) => {
-          setDetail(response.data);
-          setSpinsLeft(response.data.user.spinLeft);
-          setCareerPoints(response.data.user.points);
-          setRank(response.data?.user?.rank)
-        })
+      axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session?.user.id}`, {
+        headers: {
+          Authorization: session.user.token,
+
+        }
+      }).then((response) => {
+
+        console.log(response);
+
+        setDetail(response.data);
+        setSpinsLeft(response.data.user.spinLeft);
+        setCareerPoints(response.data.user.points);
+        setRank(response.data?.user?.rank)
+      })
         .catch((error) => {
           console.error('Error fetching details:', error);
         });
     }
-  }, [session]);
+  },);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -392,7 +421,7 @@ const CareerDecisionGame = () => {
         {/* Stats Display */}
         <div className="flex justify-between mb-6">
           <div className="space-y-1">
-            <div className="text-xl font-bold">Global Rank: {rank }</div>
+            <div className="text-xl font-bold">Global Rank: {rank}</div>
             <div className="text-xl font-bold">Career points: {careerPoints}</div>
           </div>
           <div className="text-xl font-bold">
@@ -419,20 +448,49 @@ const CareerDecisionGame = () => {
 
         {/* Action Buttons */}
         <div className="space-y-4">
+          {
+            gameCompleted ? (
+              <div className='flex flex-col items-center'>
+                <div className="text-center p-4 bg-green-100 rounded-lg shadow-md">
+                  🎉 You have completed the game. 🎉
+
+                </div>
+
+                <div className="text-lg text-green-700">
+
+                  🎊 !! Thanks For playing the Game !! 🎊
+
+                </div></div>
+
+            )
+            :
+            <div className="space-y-4">
           <button
-            onClick={spinWheel}
-            disabled={isSpinning || (spinsLeft || 0) <= 0}
+            onClick={gameCompleted ? () => {
+              alert("The game has been completed.Thanks playing")
+            } : spinWheel}
+            disabled={isSpinning || (spinsLeft || 0) <= 0 || gameCompleted}
             className="w-full bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full disabled:opacity-50"
           >
             Click to spin
           </button>
           <button
-            onClick={() => setShowGetSpinsModal(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full"
+            onClick={() => {
+              if (gameCompleted) {
+                alert("The game has been completed.Thanks For playing")
+              }
+              else {
+                router.push('/api/user/survey')
+              }
+            }}
+            disabled={isSpinning || spinsLeft !== 0 || gameCompleted}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50"
           >
             Click to get more spins
           </button>
-
+          </div>
+          }
+ 
         </div>
       </div>
 
@@ -465,13 +523,13 @@ const CareerDecisionGame = () => {
             <h3 className="text-lg font-bold mb-4">{currentScenario.scenario}</h3>
             <div className="space-y-4">
               <button
-                onClick={()=>{handleChoice(false)}}
+                onClick={() => { handleChoice(false) }}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded"
               >
                 {currentScenario.easy}
               </button>
               <button
-                onClick={()=>{handleChoice(true)}}
+                onClick={() => { handleChoice(true) }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
               >
                 {currentScenario.tough}
@@ -485,48 +543,6 @@ const CareerDecisionGame = () => {
                 </div>
 
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showGetSpinsModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setShowGetSpinsModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Get More Spins</h2>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowGetSpinsModal(false);
-                }}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {tasks.map(task => (
-                <div
-                  key={task.id}
-                  onClick={(e) => handleTaskClick(task.path, e)}
-                  className="bg-blue-50 rounded-xl p-4 border border-blue-200 hover:border-blue-400 transition-colors cursor-pointer shadow-sm hover:shadow-md"
-                >
-                  <div className="relative flex flex-col items-center">
-                    <img src="/dollar-bag.svg" alt="" className="h-16 w-16 mb-2" />
-                    <span className="text-green-700 font-bold">{task.spins}</span>
-                  </div>
-                  <div className="text-center text-gray-700 font-medium">
-                    {task.title}: {task.spins} spins
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

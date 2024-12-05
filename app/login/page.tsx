@@ -1,10 +1,11 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import axios from 'axios';
+import axios  from 'axios';
 
 export default function SignupPage() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isNewAdmin, setIsNewAdmin] = useState(false);
   const [showOTPInput, setShowOTPInput] = useState(false);
   const [isOTPSent, setIsOTPSent] = useState(false);
   const [otpError, setOtpError] = useState('');
@@ -12,10 +13,11 @@ export default function SignupPage() {
     name: '',
     email: '',
     password: '',
-    secretKey: '',
     gender: '',
     age: '',
-    otp: ''
+    otp: '',
+    uniqueCode:''
+  
   });
 
   // Previous helper functions remain the same
@@ -55,10 +57,14 @@ export default function SignupPage() {
     }
   };
   
+  
+  
 
   const verifyOTP = () => {
     const storedOTP = sessionStorage.getItem('userOTP');
     const storedEmail = sessionStorage.getItem('userEmail');
+      
+    console.log(storedOTP, storedEmail);
     
     if (!storedOTP || !storedEmail) {
       setOtpError('OTP expired. Please request a new one.');
@@ -80,36 +86,62 @@ export default function SignupPage() {
     return false;
   };
   //@ts-ignore
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
     if (isAdmin) {
-      const result = await signIn('admin-login', {
-        secretKey: formData.secretKey,
-        email: formData.email,
-        password: formData.password,
-        redirect: true,
-        callbackUrl: '/api/admin/dashboard',
-      });
-    } else {
-      if (!isOTPSent) {
-        handleSendOTP(e);
-        return;
+      // Case for Admins
+      if (isNewAdmin) {
+        // For new admins: Send OTP if not sent already
+        if (!isOTPSent) {
+          await handleSendOTP(e);
+          return; // Wait for OTP to be sent, then stop execution
+        }
+  
+        // Verify OTP after it has been sent
+        if (verifyOTP()) {
+          // Complete new admin registration
+          const result = await signIn('admin-registration', {
+            email: formData.email,
+            password: formData.password,
+            uniqueCode: formData.uniqueCode,
+            redirect: true,
+            callbackUrl: '/api/admin/dashboard',
+          });
+        }
+      } else {
+        // For existing admins: Direct login without OTP
+        const result = await signIn('admin-login', {
+          email: formData.email,
+          password: formData.password,
+          redirect: true,
+          callbackUrl: '/api/admin/dashboard',
+        });
       }
-
+    } else {
+      // Case for Users
+      if (!isOTPSent) {
+        // Send OTP if not already sent
+        await handleSendOTP(e);
+        return; // Wait for OTP to be sent, then stop execution
+      }
+  
       if (verifyOTP()) {
+        // Handle user registration
         const result = await signIn('user-registration', {
           name: formData.name,
           email: formData.email,
           gender: formData.gender,
           age: formData.age,
+          uniqueCode: formData.uniqueCode,
           redirect: true,
           callbackUrl: '/api/user/hello',
         });
       }
     }
   };
+  
+  
 
   const handleGoogleSignIn = () => {
     signIn('google', { 
@@ -121,8 +153,8 @@ export default function SignupPage() {
 
   useEffect(() => {
     return () => {
-      sessionStorage.removeItem('userOTP');
-      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('OTP');
+      sessionStorage.removeItem('Email');
     };
   }, [isAdmin]);
 
@@ -130,7 +162,11 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8 relative">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-8">Sign up to play</h1>
+          <h1 className="text-4xl font-bold mb-8">
+            {
+              isAdmin ? 'Create Your Own Game' : 'Sign-up to play'
+            }
+          </h1>
         </div>
 
         {!isAdmin && (
@@ -162,7 +198,7 @@ export default function SignupPage() {
 
         <div className="relative flex items-center justify-center my-8">
           <div className="border-t border-gray-300 w-full"></div>
-          <span className="bg-transparent px-4 text-gray-500">or</span>
+         {!isAdmin &&  <span className="bg-transparent px-4 text-gray-500">or</span>}
           <div className="border-t border-gray-300 w-full"></div>
         </div>
 
@@ -208,6 +244,15 @@ export default function SignupPage() {
                   <option value="Others">Others</option>
                 </select>
               </div>
+              <input
+                  type="text"
+                  placeholder="Code"
+                  value={formData.uniqueCode}
+                  onChange={(e) => setFormData({ ...formData, uniqueCode: e.target.value })}
+                  className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
+                  maxLength={6}
+                  required
+                />
               {showOTPInput && (
                 <input
                   type="text"
@@ -221,7 +266,7 @@ export default function SignupPage() {
               )}
             </>
           ) : (
-            <>
+            <div className='flex flex-col gap-3'>
               <input
                 type="email"
                 placeholder="Admin Email"
@@ -238,22 +283,36 @@ export default function SignupPage() {
                 className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
                 required
               />
+              {isNewAdmin && 
               <input
                 type="password"
-                placeholder="Secret Key"
-                value={formData.secretKey}
-                onChange={(e) => setFormData({ ...formData, secretKey: e.target.value })}
+                placeholder="Unique Code"
+                value={formData.uniqueCode}
+                onChange={(e) => setFormData({ ...formData, uniqueCode: e.target.value })}
                 className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
                 required
-              />
-            </>
+              />}
+                {showOTPInput && (
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={formData.otp}
+                  onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
+                  className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
+                  maxLength={6}
+                  required
+                />
+              )}
+            </div>
           )}
 
           <button
             type="submit"
             className="w-full p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
           >
-            {isAdmin ? 'Login as Admin' : isOTPSent ? 'Verify & Sign up' : 'Sign up'}
+            
+            {isOTPSent ? "Verify OTP" : isNewAdmin ? "Get OTP" : "Login"}
+
           </button>
         </form>
 
@@ -262,11 +321,23 @@ export default function SignupPage() {
             {otpError}
           </div>
         )}
+        { isAdmin &&
+        <div className='flex flex-row justify-center items-center'>
 
+        <button
+          onClick={() => setIsNewAdmin(!isNewAdmin)}
+          className="my-0 text-center text-sm text-gray-500 hover:text-gray-700"
+          >
+          {isNewAdmin ? 'Switch to Existing Admin' : 'New Admin'}
+          
+        </button>
+          </div>
+        }
         <button
           onClick={() => setIsAdmin(!isAdmin)}
           className="absolute bottom-[-48px] left-1/2 transform -translate-x-1/2 text-sm text-gray-500 hover:text-gray-700"
         >
+          
           {isAdmin ? 'Switch to User Signup' : 'Admin Login'}
         </button>
       </div>
