@@ -31,10 +31,19 @@ const TimerCard = ({heading,popup,setPopup,resetOrNot,task, setFunctionName}:tim
         const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/resetLeaderBoard`
         try {
 
-            const response = await axios.post(url)
-
+            const response = await axios.post(url,{
+                heading:heading
+            }, {
+                headers: {
+                    Authorization: token
+                }
+            })
+             
+            console.log(response);
+            
             if(response.status===200){
-                console.log("Reset SuccessFull");                
+                console.log("Reset SuccessFull"); 
+                window.location.reload()               
             }
             
         } catch (error) {

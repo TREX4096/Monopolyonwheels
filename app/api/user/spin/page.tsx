@@ -145,6 +145,7 @@ const CareerDecisionGame = () => {
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [fillFeedback, setfillFeedback] = useState(false);
   const [rotation, setRotation] = useState(0);
 
 
@@ -332,7 +333,10 @@ const CareerDecisionGame = () => {
 
           if (response.status === 203) {
             setGameCompleted(true);
-          } else if (response.status === 403) {
+          } else if (response.status === 205) {
+            setGameCompleted(false);
+            setfillFeedback(true);
+          } else if (response.status === 209) {
             setGameCompleted(false);
           } else {
             console.log(response);
@@ -367,7 +371,7 @@ const CareerDecisionGame = () => {
           console.error('Error fetching details:', error);
         });
     }
-  },);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -460,37 +464,55 @@ const CareerDecisionGame = () => {
 
                   🎊 !! Thanks For playing the Game !! 🎊
 
-                </div></div>
+                </div>
+
+
+
+              </div>
 
             )
-            :
-            <div className="space-y-4">
-          <button
-            onClick={gameCompleted ? () => {
-              alert("The game has been completed.Thanks playing")
-            } : spinWheel}
-            disabled={isSpinning || (spinsLeft || 0) <= 0 || gameCompleted}
-            className="w-full bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full disabled:opacity-50"
-          >
-            Click to spin
-          </button>
-          <button
-            onClick={() => {
-              if (gameCompleted) {
-                alert("The game has been completed.Thanks For playing")
-              }
-              else {
-                router.push('/api/user/survey')
-              }
-            }}
-            disabled={isSpinning || spinsLeft !== 0 || gameCompleted}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50"
-          >
-            Click to get more spins
-          </button>
-          </div>
+              :
+              <div className="space-y-4">
+                
+                <button
+                  onClick={gameCompleted ? () => {
+                    alert("The game has been completed.Thanks playing")
+                  } : spinWheel}
+                  disabled={isSpinning || (spinsLeft || 0) <= 0 || gameCompleted}
+                  className="w-full bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full disabled:opacity-50"
+                >
+                  Click to spin
+                </button>
+
+                {
+                  fillFeedback ? (
+                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-md text-center cursor-pointer"
+                      onClick={() => { router.push('/api/user/feedback') }}
+                    >
+                      <span className="text-lg font-semibold text-yellow-800" >Fill the Feedback Form</span>
+                    </div>)
+                   :
+                    (<button
+                      onClick={() => {
+                        if (gameCompleted) {
+                          alert("The game has been completed.Thanks For playing")
+                        }
+                        else {
+                          router.push('/api/user/survey')
+                        }
+                      }}
+                      disabled={isSpinning || spinsLeft !== 0 || gameCompleted}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50"
+                    >
+                      Click to get more spins
+                    </button>
+                  )
+
+                }
+
+              </div>
           }
- 
+
         </div>
       </div>
 

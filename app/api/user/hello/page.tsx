@@ -79,11 +79,11 @@ export default function CareerFairSurvey() {
   if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
   <ClipLoader color="#00BFFF" loading={true} size={50} />
 </div>;
-  if (!form) return <div>No form available</div>;
+  if (!form) router.push("/api/user/spin");
 
   return (
   
-    <div>
+    <div>{ form &&
       <Survey 
        formId={formId}
        isSurvey={form.isSurvey}
@@ -95,7 +95,7 @@ export default function CareerFairSurvey() {
         }}
         userId={userId} // Pass userId to the Survey component
          redirectUrl="/api/user/spin"
-      />
+      />}
     </div>
   );
 }

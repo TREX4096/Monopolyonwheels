@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import { IoIosStar } from "react-icons/io";
+import { signOut } from 'next-auth/react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,10 @@ const page = () => {
     const token = session?.user?.token; // Ensure this is set correctly
 
     const router = useRouter()
+
+    const handleLogout = async () => {
+      await signOut({ callbackUrl: '/' }); // Redirect to the homepage or any other page
+    }
 
 
     const handleStarClick = (index: number) => {
@@ -61,7 +66,8 @@ const page = () => {
       
           if (response.status === 201) {
             // Redirect user on success
-            router.push("/api/user/spin")
+            alert('Feedback submitted successfully.');
+            handleLogout()
           } else {
             // Handle other response statuses if needed
             alert('Unexpected response received.');
