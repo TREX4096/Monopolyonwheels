@@ -21,6 +21,7 @@ interface QuestionSet {
   questions: Question[];
   name: string;
   id: string;
+  type: string;
 }
 
 export default function Dashboard() {
@@ -40,17 +41,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const { data: session, status } = useSession();
-  const token = session?.user?.token;
+  const adminId = session?.user?.id;
 
   // Handle form response reset
   const handleFormResponseReset = async (formId: string) => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/resetResponse/${formId}`;
-      const response = await axios.delete(url, {
-        headers: {
-          Authorization: token,
-        },
-      });
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/resetResponse/${formId}/${adminId}`;
+      const response = await axios.delete(url);
 
       if (response.status === 200) {
         alert("Response Reset Successfully");
@@ -64,16 +61,12 @@ export default function Dashboard() {
   // Fetch forms from the backend
   useEffect(() => {
     const getForms = async () => {
-      if (status !== "authenticated" || !token) return; // Ensure session is authenticated
+      if (status !== "authenticated" || !adminId) return; // Ensure session is authenticated
 
       try {
         setLoading(true);
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getForm`;
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: token,
-          },
-        });
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getForm/${adminId}`;
+        const response = await axios.get(url);
 
         setForms(response.data);
       } catch (error: any) {
@@ -84,7 +77,7 @@ export default function Dashboard() {
     };
 
     getForms();
-  }, [refresh, status, token]);
+  }, [refresh, status, adminId]);
 
   return loading ? (
     <div className="w-full h-[100vh] flex justify-center items-center">
@@ -99,11 +92,12 @@ export default function Dashboard() {
             className={`p-5 flex flex-col mb-4 ${lightmode ? "shadow-lg bg-white" : ""}`}
           >
             <div className="mb-2 flex justify-between items-center">
-              <span
+              <div
                 className={`font-bold text-2xl ${lightmode ? "text-black" : "text-darkText"}`}
               >
                 {form.name}
-              </span>
+                <span className={`${lightmode ? "text-blue-500" : "text-blue-300"}`}>({form.type})</span>
+              </div>
               <button
                 className={`px-3 py-2 rounded-lg ${
                   lightmode

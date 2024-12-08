@@ -3,7 +3,7 @@ import axios from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Link } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 // Type definitions
 interface Leader {
@@ -146,7 +146,9 @@ const CareerDecisionGame = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [fillFeedback, setfillFeedback] = useState(false);
+  const [multiClick, setMultiClick] = useState<boolean>(false);
   const [rotation, setRotation] = useState(0);
+  const token = localStorage.getItem('token'); // Ensure this is set correctly
 
 
   // Canvas setup and drawing functions
@@ -258,6 +260,11 @@ const CareerDecisionGame = () => {
     ctx.restore();
   };
 
+  
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' }); // Redirect to the homepage or any other page
+  }
+
   // Game logic functions
   const spinWheel = () => {
     if (isSpinning || (spinsLeft || 0) <= 0) return;
@@ -295,6 +302,7 @@ const CareerDecisionGame = () => {
     const spinsToDeduct = isTough ? currentScenario.spinCommitment + 1 : 1;
 
     try {
+      setMultiClick(true);
       await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/updatePoints/${session.user.id}`,
         {
@@ -306,7 +314,7 @@ const CareerDecisionGame = () => {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session.user.id}`, {
         headers: {
-          Authorization: session.user.token,
+          Authorization: token,
         }
       }
       );
@@ -318,6 +326,9 @@ const CareerDecisionGame = () => {
     } catch (error) {
       console.error("Error handling choice:", error);
     }
+    finally {
+      setMultiClick(false);
+    }
   };
 
   useEffect(() => {
@@ -327,7 +338,7 @@ const CareerDecisionGame = () => {
         try {
           const response = await axios.get(url, {
             headers: {
-              Authorization: session.user.token,
+              Authorization: token,
             },
           });
 
@@ -355,7 +366,7 @@ const CareerDecisionGame = () => {
     if (session?.user?.id) {
       axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session?.user.id}`, {
         headers: {
-          Authorization: session.user.token,
+          Authorization: token,
 
         }
       }).then((response) => {
@@ -453,27 +464,31 @@ const CareerDecisionGame = () => {
         {/* Action Buttons */}
         <div className="space-y-4">
           {
-            gameCompleted ? (
+            gameCompleted || fillFeedback ? (
               <div className='flex flex-col items-center'>
                 <div className="text-center p-4 bg-green-100 rounded-lg shadow-md">
                   🎉 You have completed the game. 🎉
-
                 </div>
-
                 <div className="text-lg text-green-700">
-
                   🎊 !! Thanks For playing the Game !! 🎊
-
                 </div>
+                {fillFeedback && (spinsLeft === 0) ? (
+                  <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-md text-center cursor-pointer"
+                    onClick={() => { router.push('/api/user/feedback') }}
+                  >
+                    <span className="text-lg font-semibold text-yellow-800" >Fill the Feedback Form</span>
+                  </div>
+                ):
 
-
-
+                <div className="mt-4 p-4 bg-red-100 rounded-lg shadow-md text-center cursor-pointer"
+                  onClick={() => { handleLogout() }}
+                >
+                  <span className="text-lg font-semibold text-red-800">Exit Game</span>
+                </div>
+              }
               </div>
-
-            )
-              :
+            ) : (
               <div className="space-y-4">
-                
                 <button
                   onClick={gameCompleted ? () => {
                     alert("The game has been completed.Thanks playing")
@@ -483,36 +498,23 @@ const CareerDecisionGame = () => {
                 >
                   Click to spin
                 </button>
-
-                {
-                  fillFeedback ? (
-                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-md text-center cursor-pointer"
-                      onClick={() => { router.push('/api/user/feedback') }}
-                    >
-                      <span className="text-lg font-semibold text-yellow-800" >Fill the Feedback Form</span>
-                    </div>)
-                   :
-                    (<button
-                      onClick={() => {
-                        if (gameCompleted) {
-                          alert("The game has been completed.Thanks For playing")
-                        }
-                        else {
-                          router.push('/api/user/survey')
-                        }
-                      }}
-                      disabled={isSpinning || spinsLeft !== 0 || gameCompleted}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50"
-                    >
-                      Click to get more spins
-                    </button>
-                  )
-
-                }
-
+                <button
+                  onClick={() => {
+                    if (gameCompleted) {
+                      alert("The game has been completed.Thanks For playing")
+                    }
+                    else {
+                      router.push('/api/user/survey')
+                    }
+                  }}
+                  disabled={isSpinning || spinsLeft !== 0 || gameCompleted}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50"
+                >
+                  Click to get more spins
+                </button>
               </div>
+            )
           }
-
         </div>
       </div>
 
@@ -545,12 +547,14 @@ const CareerDecisionGame = () => {
             <h3 className="text-lg font-bold mb-4">{currentScenario.scenario}</h3>
             <div className="space-y-4">
               <button
+                disabled={multiClick}
                 onClick={() => { handleChoice(false) }}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded"
               >
                 {currentScenario.easy}
               </button>
               <button
+                disabled={multiClick}
                 onClick={() => { handleChoice(true) }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
               >

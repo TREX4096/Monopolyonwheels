@@ -15,17 +15,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const context = useContext(AppModeContext);
   const { data: session } = useSession();
-  const token = session?.user?.token;
+  const adminId = session?.user?.id;
 
 
 const handleDownload = async () => {
     try {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/download`;
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/download/${adminId}`;
         
         const response = await axios.get(url, {
-            headers: {
-                Authorization: token, // Pass your auth token here
-            },
             responseType: 'blob', // Important: Set responseType to 'blob' for file downloads
         });
 

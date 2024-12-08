@@ -22,13 +22,12 @@ const Newform = () => {
   const { noOfQuestion, setNoofQuestion, Form,saved,setIsSaved } = adminContext;
 
   const { data: session } = useSession();
-    const token = session?.user?.token ;
+    const adminId = session?.user?.id ;
 
     
     
     const handleSubmit = async () => {
-    console.log(token);
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/addForm`;
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/addForm/${adminId}`;
     
     // Validate the Form object if necessary
     if (!Form || Object.keys(Form).length === 0) {
@@ -52,10 +51,6 @@ const Newform = () => {
         formName,
         formData: Form,
         isSurvey
-      }, {
-        headers: {
-          Authorization: token
-        }
       });
     
       if (response.status === 201) {

@@ -39,7 +39,7 @@ const Popup: React.FC<PopupProps> = ({ onClose,functionName,refresh,setRefresh})
     const [value, setValue] = useState("")
     const [unit, setUnit] = useState(units[2])
     const { data: session } = useSession()
-    const token = session?.user?.token
+    const adminId = session?.user?.id
 
     const values = getValues(unit)
 
@@ -56,13 +56,9 @@ const Popup: React.FC<PopupProps> = ({ onClose,functionName,refresh,setRefresh})
       try {
 
           const response = await axios.post(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/putTimer`,
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/putTimer/${adminId}`,
               requestData,
-              {
-                  headers: {
-                      Authorization: token,
-                  },
-              }
+             
           );
           if(response.status===200){
             

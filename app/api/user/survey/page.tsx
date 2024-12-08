@@ -34,7 +34,7 @@ export default function CareerFairSurvey() {
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const userId = session?.user?.id ; // Ensure this is set correctly
-  const token = session?.user.token
+  const token = localStorage.getItem('token'); // Ensure this is set correctly
 
   useEffect(() => {
     const getForms = async () => {
@@ -49,16 +49,17 @@ export default function CareerFairSurvey() {
 
 
         
-        if(response.status !== 200){
-          throw new Error(response.data)
+        if(response.status === 200){
+          setFormId(response.data.formId)
+          setForm(response.data.form);
         }
         //@ts-ignore
         else if (response.status == 206){
-          router.push("/api/user/feedback")
+          router.push("/api/user/spin")
         }
         else{
-          setFormId(response.data.formId)
-          setForm(response.data.form);
+          throw new Error(response.data)
+         
         }
 
         
@@ -78,7 +79,7 @@ export default function CareerFairSurvey() {
   if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
   <ClipLoader color="#00BFFF" loading={true} size={50} />
 </div>;
-  if (!form) router.push("/api/user/feedback");
+  // if (!form) router.push("/api/user/feedback");
 
   return (
   
@@ -94,7 +95,7 @@ export default function CareerFairSurvey() {
           console.log(`Remaining questions: ${remaining}`);
         }}
         userId={userId} // Pass userId to the Survey component
-        redirectUrl="/api/user/feedback" // Redirect URL after the survey is completed
+        redirectUrl="/api/user/spin" // Redirect URL after the survey is completed
       />}
     </div>
   );

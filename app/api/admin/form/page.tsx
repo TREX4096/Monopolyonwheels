@@ -9,7 +9,7 @@ import { useSession } from 'next-auth/react';
 
 export default function Dashboard() {
   const { data: session } = useSession();
-  const token = session?.user?.token;
+  const adminId = session?.user?.id;
 
   const modeContext = useContext(AppModeContext);
   if (!modeContext) {
@@ -29,15 +29,11 @@ export default function Dashboard() {
   useEffect(() => {
     const getForms = async () => {
       try {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getFormWithId`;
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getFormWithId/${adminId}`;
 
          setLoading(true)
         
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: token,
-          },
-        });
+        const response = await axios.get(url);
         console.log(response);
         
         // if(response.status == 209){
@@ -58,10 +54,10 @@ export default function Dashboard() {
       }
     };
 
-    if (token) {
+    if (adminId) {
       getForms(); // Call the function to fetch forms
     }
-  }, [refresh, token]);
+  }, [refresh, adminId]);
 
   return (
     <div className={`flex flex-col gap-5 p-4 ${!lightmode && 'bg-darkBg'}`}>

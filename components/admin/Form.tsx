@@ -9,6 +9,7 @@ import axios from 'axios';
 interface FormProps {
   form: {
     formid:string;
+    type: string;
     name: string;
     form: {
       question: string;
@@ -62,7 +63,9 @@ const Form: React.FC<FormProps> = ({ form, formIndex,refresh,setRefresh }) => {
     className={`rounded-lg p-4 ${lightmode ? "border-gray-200 bg-white shadow-lg border-[1px] " : "text-darkText bg-darkBg border-[1px] border-darkBorder"}`}
     >
       <div className="flex flex-col gap-2 md:flex-row justify-between items-center">
-        <h1 className="text-center font-bold">{form.name}</h1>
+        <h1 className={`text-2xl font-bold text-center mb-4 ${lightmode ? "text-black" : "text-white"}`}>
+          {form.name} <span className={`${lightmode ? "text-blue-500" : "text-blue-300"}`}>({form.type})</span>
+        </h1>
         <div className="flex flex-row justify-between items-center gap-3">
           {/* <button className={`px-3 py-2  ${lightmode ? "bg-blue-400 text-white" : "bg-darkBg border-[1px] border-darkBorder text-darkText"} text-dark rounded-lg`}>
             Add Question

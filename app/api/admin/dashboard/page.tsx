@@ -34,17 +34,15 @@ export default function Dashboard() {
   const { lightmode } = modeContext;
 
   const { data: session, status } = useSession();
-  const token = session?.user?.token;
+  const adminId = session?.user?.id;
 
   // API call to fetch users
   const getUsers = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAllusers`;
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAllusers/${adminId}`;
       setisLoading(true);
 
-      const response = await axios.get(url, {
-        headers: { Authorization: token },
-      });
+      const response = await axios.get(url);
       setUsers(response.data);
     } catch (error: any) {
       console.error("Error fetching users:", error.response?.data || error.message);
@@ -56,12 +54,10 @@ export default function Dashboard() {
   // API call to fetch admin details
   const getAdmin = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAdmin`;
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getAdmin/${adminId}`;
       setisLoading(true);
 
-      const response = await axios.get(url, {
-        headers: { Authorization: token },
-      });
+      const response = await axios.get(url);
 
       if (response.status === 200) {
         setLastSession(response.data.lastSessionWinners);
@@ -78,12 +74,10 @@ export default function Dashboard() {
   // API call to fetch session users
   const getSessionUsers = async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getSessionusers/sessionWinner`;
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/getSessionusers/sessionWinner/${adminId}`;
       setisLoading(true);
 
-      const response = await axios.get(url, {
-        headers: { Authorization: token },
-      });
+      const response = await axios.get(url);
       setSessionUsers(response.data.users);
     } catch (error: any) {
       console.error("Error fetching session users:", error.response?.data || error.message);
@@ -96,7 +90,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (status === "authenticated" && token) {
+        if (status === "authenticated" && adminId) {
           await getUsers();
           await getAdmin();
           await getSessionUsers();
@@ -107,7 +101,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [status, token, refresh]);
+  }, [status, adminId, refresh]);
 
   return (
     !isLoading ? (

@@ -1,12 +1,9 @@
 "use client";
-import React, { useEffect, useState,useContext } from 'react';
-import axios, { AxiosError } from 'axios';
+import React, { useState,useContext } from 'react';
 import Form from '@/components/admin/newForm/Form';
 import AppModeContext from '@/context/appMode';
 import AdminContext from '@/context/adminContext';
 
-import { useSession } from 'next-auth/react';
-import { ClipLoader } from 'react-spinners';
 
 
 export default function Dashboard() {

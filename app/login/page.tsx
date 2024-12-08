@@ -135,7 +135,7 @@ export default function SignupPage() {
           age: formData.age,
           uniqueCode: formData.uniqueCode,
           redirect: true,
-          callbackUrl: '/api/user/hello',
+          callbackUrl: '/api/user/chooseAdmin',
         });
       }
     }
@@ -145,7 +145,7 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = () => {
     signIn('google', { 
-      callbackUrl: '/api/user/hello'
+      callbackUrl: '/api/user/chooseAdmin'
      }
     );
       

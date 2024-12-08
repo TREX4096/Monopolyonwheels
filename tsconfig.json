@@ -36,7 +36,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/api/user/hello/page.tsx",
+    "app/api/user/feedback/hello/page.tsx",
     "app/api/user/survey/page.tsx",
     "components/survey.tsx",
     "lib/auth.ts",

@@ -24,19 +24,15 @@ const TimerCard = ({heading,popup,setPopup,resetOrNot,task, setFunctionName}:tim
     if (!modeContext) { throw new Error('AppModeContextProvider is missing'); }
     const { lightmode, setLightMode } = modeContext;
     const { data: session } = useSession();
-    const token = session?.user.token
+    const adminId = session?.user?.id
 
     const handleReset = async()=>{
 
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/resetLeaderBoard`
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/resetLeaderBoard/${adminId}`
         try {
 
             const response = await axios.post(url,{
                 heading:heading
-            }, {
-                headers: {
-                    Authorization: token
-                }
             })
              
             console.log(response);
