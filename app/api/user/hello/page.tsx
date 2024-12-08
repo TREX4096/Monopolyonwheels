@@ -18,14 +18,14 @@ interface Question {
   question: string;
   questionId: string;
   options: Option[];
-  isMultipleCorrect:boolean;
+  isMultipleCorrect: boolean;
   ismarked: boolean; // Changed to boolean (lowercase)
 }
 
 interface Form {
   questions: Question[];
-  name:string,
-  isSurvey:boolean
+  name: string,
+  isSurvey: boolean
 }
 export default function CareerFairSurvey() {
   const router = useRouter();
@@ -33,8 +33,12 @@ export default function CareerFairSurvey() {
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
-  const userId = session?.user?.id ; // Ensure this is set correctly
-  const token = localStorage.getItem('token'); // Ensure this is set correctly
+  const userId = session?.user?.id; // Ensure this is set correctly
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem('token'));
+  }, []);
 
   useEffect(() => {
     const getForms = async () => {
@@ -44,33 +48,34 @@ export default function CareerFairSurvey() {
           {
             headers: {
               Authorization: token,
-            }}
+            }
+          }
         );
 
         console.log(response.status);
-        
-        
-        if(response.status === 200){
+
+
+        if (response.status === 200) {
           setFormId(response.data.formId)
           setForm(response.data.form);
         }
         //@ts-ignore
-        else if (response.status === 206){
+        else if (response.status === 206) {
           router.push("/api/user/spin")
         }
-        else{
-          
+        else {
+
           throw new Error(response.data)
         }
 
-        
-        
+
+
 
       } catch (error: any) {
         console.error('Error fetching forms:', error.response ? `${error.response.status}: ${error.response.data}` : error.message);
       } finally {
         setLoading(false);
-        
+
       }
     };
 
@@ -78,24 +83,24 @@ export default function CareerFairSurvey() {
   }, [userId]); // Runs once when the component mounts
 
   if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
-  <ClipLoader color="#00BFFF" loading={true} size={50} />
-</div>;
+    <ClipLoader color="#00BFFF" loading={true} size={50} />
+  </div>;
   // if (!form) router.push("/api/user/spin");
 
   return (
-  
-    <div>{ form &&
-      <Survey 
-       formId={formId}
-       isSurvey={form.isSurvey}
+
+    <div>{form &&
+      <Survey
+        formId={formId}
+        isSurvey={form.isSurvey}
         questions={form.questions} // Pass the questions to the Survey component
         //@ts-ignore
-        onProgressUpdate={(remaining:number) => {
+        onProgressUpdate={(remaining: number) => {
           // Handle progress updates if needed
           console.log(`Remaining questions: ${remaining}`);
         }}
         userId={userId} // Pass userId to the Survey component
-         redirectUrl="/api/user/spin"
+        redirectUrl="/api/user/spin"
       />}
     </div>
   );

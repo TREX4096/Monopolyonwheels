@@ -148,7 +148,11 @@ const CareerDecisionGame = () => {
   const [fillFeedback, setfillFeedback] = useState(false);
   const [multiClick, setMultiClick] = useState<boolean>(false);
   const [rotation, setRotation] = useState(0);
-  const token = localStorage.getItem('token'); // Ensure this is set correctly
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem('token'));
+  }, []);
 
 
   // Canvas setup and drawing functions
@@ -260,7 +264,7 @@ const CareerDecisionGame = () => {
     ctx.restore();
   };
 
-  
+
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' }); // Redirect to the homepage or any other page
   }
@@ -478,14 +482,14 @@ const CareerDecisionGame = () => {
                   >
                     <span className="text-lg font-semibold text-yellow-800" >Fill the Feedback Form</span>
                   </div>
-                ):
+                ) :
 
-                <div className="mt-4 p-4 bg-red-100 rounded-lg shadow-md text-center cursor-pointer"
-                  onClick={() => { handleLogout() }}
-                >
-                  <span className="text-lg font-semibold text-red-800">Exit Game</span>
-                </div>
-              }
+                  <div className="mt-4 p-4 bg-red-100 rounded-lg shadow-md text-center cursor-pointer"
+                    onClick={() => { handleLogout() }}
+                  >
+                    <span className="text-lg font-semibold text-red-800">Exit Game</span>
+                  </div>
+                }
               </div>
             ) : (
               <div className="space-y-4">

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { IoIosStar } from "react-icons/io";
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
@@ -17,8 +17,14 @@ const page = () => {
     const [abtTheGame, setAbtTheGame] = useState("none")
     const [notLiked, setNotLiked] = useState("none")
     const { data: session } = useSession();
-    const userId = session?.user?.id ; // Ensure this is set correctly
-    const token = localStorage.getItem('token'); // Ensure this is set correctly
+    const [token, setToken] = useState<string | null>(null);
+    const userId = session?.user?.id ; 
+    
+    useEffect(() => {
+      setToken(localStorage.getItem('token'));
+    }, []);
+
+    
     
 
     const router = useRouter()
