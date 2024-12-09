@@ -32,59 +32,60 @@ export default function CareerFairSurvey() {
   const [form, setForm] = useState<Form | null>(null);
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(true);
-  const { data: session } = useSession();
+  const { data: session,status: sessionStatus } = useSession();
   const userId = session?.user?.id; // Ensure this is set correctly
   const [token, setToken] = useState<string | null>(null);
 
+
+  
   useEffect(() => {
-    setToken(localStorage.getItem('token'));
+    const storedToken = localStorage.getItem('token');
+    console.log("Token fetched from localStorage:", storedToken);
+    setToken(storedToken);
   }, []);
 
-  useEffect(() => {
-    const getForms = async () => {
-      setLoading(true); // Set loading true before fetching
-      try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormId/${userId}`,
-          {
-            headers: {
-              Authorization: token,
-            }
+  
+  const getForms = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/getFormId/${userId}`,
+        {
+          headers: {
+            Authorization: token,
           }
-        );
-
-
-
-        if (response.status === 200) {
-          setFormId(response.data.formId)
-          setForm(response.data.form);
         }
-        //@ts-ignore
-        else if (response.status == 206) {
-          router.push("/api/user/spin")
-        }
-        else {
-          throw new Error(response.data)
+      );
 
-        }
-
-
-
-
-      } catch (error: any) {
-        console.error('Error fetching forms:', error.response ? `${error.response.status}: ${error.response.data}` : error.message);
-      } finally {
-        setLoading(false);
-
+      if (response.status === 200) {
+        setFormId(response.data.formId);
+        setForm(response.data.form);
+      } else if (response.status === 206) {
+        router.push("/api/user/spin");
+      } else {
+        throw new Error(response.data);
       }
-    };
+    } catch (error: any) {
+      console.error('Error fetching forms:', error.response ? `${error.response.status}: ${error.response.data}` : error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    getForms();
-  }, [userId]); // Runs once when the component mounts
 
-  if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
-    <ClipLoader color="#00BFFF" loading={true} size={50} />
-  </div>;
-  // if (!form) router.push("/api/user/feedback");
+  useEffect(() => {
+    // Fetch form data only if token is available
+    if (token && userId) {
+    getForms()}
+  }, [token, userId]); // Add token as a dependency
+
+  if (loading) {
+    return (
+      <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
+        <ClipLoader color="#00BFFF" loading={true} size={50} />
+      </div>
+    );
+  }
 
   return (
 

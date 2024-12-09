@@ -335,39 +335,41 @@ const CareerDecisionGame = () => {
     }
   };
 
-  useEffect(() => {
-    const checkCompletion = async () => {
-      if (session?.user?.id) {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/checkFeedback/${session?.user.id}`;
-        try {
-          const response = await axios.get(url, {
-            headers: {
-              Authorization: token,
-            },
-          });
+  const checkCompletion = async () => {
+    if (session?.user?.id) {
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/checkFeedback/${session?.user.id}`;
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: token,
+          },
+        });
 
-          if (response.status === 203) {
-            setGameCompleted(true);
-          } else if (response.status === 205) {
-            setGameCompleted(false);
-            setfillFeedback(true);
-          } else if (response.status === 209) {
-            setGameCompleted(false);
-          } else {
-            console.log(response);
-          }
-        } catch (error) {
-          console.error('Error checking completion:', error);
+        if (response.status === 203) {
+          setGameCompleted(true);
+        } else if (response.status === 205) {
+          setGameCompleted(false);
+          setfillFeedback(true);
+        } else if (response.status === 209) {
+          setGameCompleted(false);
+        } else {
+          console.log(response);
         }
+      } catch (error) {
+        console.error('Error checking completion:', error);
       }
-    };
+    }
+  };
 
-    checkCompletion();
-  }, [session]);
+  useEffect(() => {
+    if (session?.user?.id && token) {
+      checkCompletion();
+    }
+  }, [session, token]);
 
   // Effects
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user?.id && token) {
       axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/leaderboard/${session?.user.id}`, {
         headers: {
           Authorization: token,
@@ -386,7 +388,7 @@ const CareerDecisionGame = () => {
           console.error('Error fetching details:', error);
         });
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, token]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -469,26 +471,41 @@ const CareerDecisionGame = () => {
         <div className="space-y-4">
           {
             gameCompleted || fillFeedback ? (
+
               <div className='flex flex-col items-center'>
-                <div className="text-center p-4 bg-green-100 rounded-lg shadow-md">
-                  🎉 You have completed the game. 🎉
-                </div>
-                <div className="text-lg text-green-700">
-                  🎊 !! Thanks For playing the Game !! 🎊
-                </div>
-                {fillFeedback && (spinsLeft === 0) ? (
+                {spinsLeft === 0 ? (
+                  <div>
+
+                    <div className="text-center p-4 bg-green-100 rounded-lg shadow-md">
+                      🎉 You have completed the game. 🎉
+                    </div>
+                    <div className="text-lg text-green-700">
+                      🎊 !! Thanks For playing the Game !! 🎊
+                    </div>
+                  </div>) :
+
+                  <button
+                    onClick={gameCompleted ? () => {
+                      alert("The game has been completed.Thanks playing")
+                    } : spinWheel}
+                    disabled={isSpinning || (spinsLeft || 0) <= 0}
+                    className="w-full bg-yellow-300 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full disabled:opacity-50"
+                  >
+                    Click to spin
+                  </button>
+
+
+
+                }
+                {fillFeedback && (spinsLeft === 0) && 
+
                   <div className="mt-4 p-4 bg-yellow-100 rounded-lg shadow-md text-center cursor-pointer"
                     onClick={() => { router.push('/api/user/feedback') }}
                   >
                     <span className="text-lg font-semibold text-yellow-800" >Fill the Feedback Form</span>
                   </div>
-                ) :
 
-                  <div className="mt-4 p-4 bg-red-100 rounded-lg shadow-md text-center cursor-pointer"
-                    onClick={() => { handleLogout() }}
-                  >
-                    <span className="text-lg font-semibold text-red-800">Exit Game</span>
-                  </div>
+
                 }
               </div>
             ) : (
@@ -519,7 +536,19 @@ const CareerDecisionGame = () => {
               </div>
             )
           }
+
+          
         </div>
+        {
+          gameCompleted &&  (
+
+            <div className="mt-4 p-4 bg-red-100 rounded-lg shadow-md text-center cursor-pointer"
+              onClick={() => { handleLogout() }}
+            >
+              <span className="text-lg font-semibold text-red-800">Exit Game</span>
+            </div>
+          ) 
+        }
       </div>
 
       {/* Leaderboard */}

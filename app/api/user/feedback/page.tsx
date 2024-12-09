@@ -28,6 +28,33 @@ const page = () => {
     
 
     const router = useRouter()
+    const checkCompletion = async () => {
+      if (session?.user?.id) {
+        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/checkFeedback/${session?.user.id}`;
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Authorization: token,
+            },
+          });
+  
+          if (response.status === 203) {
+          router.push('/api/user/spin');
+          } else {
+            console.log(response);
+          }
+        } catch (error) {
+          console.error('Error checking completion:', error);
+        }
+      }
+    };
+  
+    useEffect(() => {
+      if (session?.user?.id && token) {
+        checkCompletion();
+      }
+    }, [session, token]);
+  
 
 
 
@@ -83,10 +110,6 @@ const page = () => {
         }
       };
       
-      
-
-
-
 
     return (
         <div 

@@ -38,9 +38,11 @@ export default function CareerFairSurvey() {
 
   useEffect(() => {
     setToken(localStorage.getItem('token'));
+    console.log("Token fetched from localStorage:", token);
+    
   }, []);
 
-  useEffect(() => {
+
     const getForms = async () => {
       setLoading(true); // Set loading true before fetching
       try {
@@ -79,8 +81,12 @@ export default function CareerFairSurvey() {
       }
     };
 
-    getForms();
-  }, [userId]); // Runs once when the component mounts
+  useEffect(() => {
+    if (userId && token) {
+      getForms();
+    }
+  }, [userId, token]); 
+
 
   if (loading) return <div className='w-full h-[100vh] flex flex-row justify-center items-center'>
     <ClipLoader color="#00BFFF" loading={true} size={50} />

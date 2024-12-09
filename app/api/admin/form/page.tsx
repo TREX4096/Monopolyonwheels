@@ -34,8 +34,6 @@ export default function Dashboard() {
          setLoading(true)
         
         const response = await axios.get(url);
-        console.log(response);
-        
         // if(response.status == 209){
         //   setNoforms(true)
         //   return 

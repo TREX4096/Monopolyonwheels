@@ -50,14 +50,14 @@ const TopBar: React.FC<{ showBack?: boolean }> = ({ showBack = true }) => {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white border-b z-10">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
-        {showBack && (
+        {/* {showBack && (
           <button
             onClick={() => router.push('/api/user/spin')}
             className="mr-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-        )}
+        )} */}
         <div className="flex justify-between items-center w-full">
           <h1 className="text-2xl font-medium">Monopolyonwheels</h1>
           <button
