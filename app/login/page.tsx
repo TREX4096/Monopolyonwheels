@@ -133,7 +133,6 @@ export default function SignupPage() {
           email: formData.email,
           gender: formData.gender,
           age: formData.age,
-          uniqueCode: formData.uniqueCode,
           redirect: true,
           callbackUrl: '/api/user/chooseAdmin',
         });
@@ -244,15 +243,6 @@ export default function SignupPage() {
                   <option value="Others">Others</option>
                 </select>
               </div>
-              <input
-                  type="text"
-                  placeholder="Code"
-                  value={formData.uniqueCode}
-                  onChange={(e) => setFormData({ ...formData, uniqueCode: e.target.value })}
-                  className="w-full p-3 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-200 focus:ring-2 focus:ring-purple-400 outline-none"
-                  maxLength={6}
-                  required
-                />
               {showOTPInput && (
                 <input
                   type="text"

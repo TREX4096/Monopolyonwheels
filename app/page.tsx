@@ -33,9 +33,9 @@ const WelcomePage = () => {
   </button>
   
   {/* IIT Delhi Abu Dhabi Logo */}
-  <div className="w-60 sm:w-65 md:w-64">
+  {/* <div className="w-60 sm:w-65 md:w-64">
     <img src="Logo1.svg" alt="Logo" />
-  </div>
+  </div> */}
 </div>
 
 
